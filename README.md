@@ -1,6 +1,11 @@
 # quantproject
 
+[![ci](https://github.com/Malachy1300/quantproject/actions/workflows/ci.yml/badge.svg)](https://github.com/Malachy1300/quantproject/actions/workflows/ci.yml)
+
 A quantitative forex trading system for researching, backtesting, and live-trading Opening Range Breakout (ORB) strategies across major forex pairs.
+
+> Developed privately and migrated to GitHub in June 2026, which is why the
+> public history starts at the migration commit.
 
 ---
 
@@ -27,7 +32,7 @@ kills false positives — not a profitable strategy — is the deliverable here.
 | Strategies | `edge_hypotheses.py` | Strategy entry functions and parameter grids |
 | Research GUI | `edge_gui.py` | Streamlit dashboard for running parameter sweeps |
 | Pattern Miner | `edge_miner.py` | Automated edge discovery using LightGBM + SHAP |
-| Live Trader | `MT5live.2.py` | Real-time execution via MetaTrader 5 |
+| Live Trader | `MT5Live.2.py` | Real-time execution via MetaTrader 5 |
 | Live Dashboard | `live_gui.py` | Real-time monitoring dashboard |
 
 ---
@@ -84,7 +89,7 @@ streamlit run edge_gui.py
 ## Running the live trader
 
 ```bash
-python MT5live.2.py
+python MT5Live.2.py
 ```
 
 Ensure MetaTrader 5 is open and logged in before starting. The script will:
@@ -208,7 +213,7 @@ quantproject/
 ├── edge_hypotheses.py   # Your strategy workspace
 ├── edge_gui.py          # Research dashboard
 ├── edge_miner.py        # Automated pattern discovery
-├── MT5live.2.py         # Live trading engine
+├── MT5Live.2.py         # Live trading engine
 ├── live_gui.py          # Live monitoring dashboard
 ├── requirements.txt
 ├── .env                 # Secrets — never commit
