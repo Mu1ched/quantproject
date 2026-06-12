@@ -1,0 +1,10 @@
+[
+  "disc_london_ma_dist_gt_p90_h15_short",
+  "disc_london_ma_dist_gt_p90_h30_short",
+  "disc_ny_hurst_gt_p75_h60_long",
+  "disc_ny_hurst_gt_p90_h60_long",
+  "disc_ny_ma_dist_lt_p10_h30_long",
+  "disc_ny_ma_dist_lt_p10_h60_long",
+  "disc_ny_ma_dist_lt_p25_h30_long",
+  "disc_ny_ma_dist_lt_p25_h60_long"
+]

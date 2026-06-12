@@ -1,0 +1,938 @@
+{
+  "generated_at": "2026-06-06T22:05:24.920030+00:00",
+  "pairs": [
+    "EUR_USD",
+    "GBP_USD"
+  ],
+  "n_per_session": 10,
+  "per_session_counts": {
+    "asian": 11,
+    "london": 11,
+    "ny": 11
+  },
+  "hypotheses": [
+    {
+      "function_name": "asian_range_breakout_london_open",
+      "code": "def entry_asian_range_breakout_london_open(bst, slot, row, ts, pair, slip, hspd,\n                          sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    \n    # Reset Asian range at session start (00:00 UTC)\n    if row.hour == 0 and row.minute == 0:\n        sc['asian_high'] = float('nan')\n        sc['asian_low']  = float('nan')\n    \n    # Build Asian range from 00:00-08:00 UTC\n    if row.hour < 8:\n        if math.isnan(sc.get('asian_high', float('nan'))):\n            sc['asian_high'] = row.high\n            sc['asian_low']  = row.low\n        else:\n            sc['asian_high'] = max(sc['asian_high'], row.high)\n            sc['asian_low']  = min(sc['asian_low'],  row.low)\n        return False\n    \n    # Place OCO at 07:55-08:00 UTC (just before London open)\n    if sc.get('oco_placed_today'):\n        return False\n    if row.hour != 8 or row.minute < 0 or row.minute > 5:\n        return False\n    \n    rh = sc.get('asian_high', float('nan'))\n    rl = sc.get('asian_low',  float('nan'))\n    atr = getattr(row, 'atr', float('nan'))\n    \n    if math.isnan(rh) or math.isnan(rl) or math.isnan(atr) or atr <= 0:\n        return False\n    \n    rng = rh - rl\n    if rng <= 0:\n        return False\n    \n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk    = resolve_risk(bst, regime_mult, 'dynamic')\n    long_size  = rv_size(pair, bst.balance, risk, rh, sl_dist, row)\n    short_size = rv_size(pair, bst.balance, risk, rl, sl_dist, row)\n    \n    place_oco_pending(\n        sc, ts,\n        long_level=rh,  long_sl=rh - sl_dist,\n        long_tp=rh + tp_dist, long_size=long_size, long_dist=sl_dist,\n        short_level=rl, short_sl=rl + sl_dist,\n        short_tp=rl - tp_dist, short_size=short_size, short_dist=sl_dist,\n    )\n    sc['oco_placed_today'] = True\n    return False",
+      "rationale": "<cite index=\"1-19,1-20\">In Forex and CFDs on gold and oil, the opening ranges of the London and New York sessions work best. The Asian session range suits instruments tied to that market environment.</cite> This strategy marks the Asian range (00:00-08:00 UTC) as a low-volatility breakout base and trades the directional continuation when London opens. Source: LiteFinance, FXNX, traders.mba",
+      "behaviour_type": "breakout_continuation",
+      "additional_params": {
+        "tp_r": [
+          1.5,
+          2.5,
+          3.5
+        ],
+        "sl_r": [
+          1.0,
+          1.5,
+          2.0
+        ]
+      },
+      "target_session": "asian",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "compression_breakout_atr_expansion",
+      "code": "def entry_compression_breakout_atr_expansion(bst, slot, row, ts, pair, slip, hspd,\n                          sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('breakout_placed_today'):\n        return False\n    \n    # Track min volatility over the last 60 bars\n    yz_vol = getattr(row, 'yz_vol', float('nan'))\n    yz_vol_median = getattr(row, 'yz_vol_ratio', float('nan'))\n    atr = getattr(row, 'atr', float('nan'))\n    \n    if math.isnan(yz_vol_median) or math.isnan(atr) or atr <= 0:\n        return False\n    \n    # Condition 1: Compressed volatility (below 70% of median)\n    if yz_vol_median >= 0.7:\n        return False\n    \n    # Condition 2: High momentum imbalance (signal ignition)\n    persistent_imb = getattr(row, 'persistent_imbalance', float('nan'))\n    if math.isnan(persistent_imb) or abs(persistent_imb) < params['imb_thresh']:\n        return False\n    \n    # Get recent swing points\n    swing_high = getattr(row, 'swing_high5', float('nan'))\n    swing_low  = getattr(row, 'swing_low5', float('nan'))\n    \n    if math.isnan(swing_high) or math.isnan(swing_low):\n        return False\n    \n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk    = resolve_risk(bst, regime_mult, 'dynamic')\n    \n    long_size  = rv_size(pair, bst.balance, risk, swing_high, sl_dist, row)\n    short_size = rv_size(pair, bst.balance, risk, swing_low, sl_dist, row)\n    \n    place_oco_pending(\n        sc, ts,\n        long_level=swing_high,  long_sl=swing_high - sl_dist,\n        long_tp=swing_high + tp_dist, long_size=long_size, long_dist=sl_dist,\n        short_level=swing_low, short_sl=swing_low + sl_dist,\n        short_tp=swing_low - tp_dist, short_size=short_size, short_dist=sl_dist,\n    )\n    sc['breakout_placed_today'] = True\n    return False",
+      "rationale": "Low volatility compression (yz_vol_ratio < 0.7) followed by expansion signal imminent directional move. Place OCO pending orders at prior breakout levels when volatility inflates above baseline. Source: Algomatic, QuantifiedStrategies",
+      "behaviour_type": "momentum_ignition_after_compression",
+      "additional_params": {
+        "tp_r": [
+          1.5,
+          2.5
+        ],
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "imb_thresh": [
+          1.5,
+          2.0
+        ]
+      },
+      "target_session": "asian",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "rsi_extreme_mean_reversion_quiet_vol",
+      "code": "def entry_rsi_extreme_mean_reversion_quiet_vol(bst, slot, row, ts, pair, slip, hspd,\n                          sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('mr_fired_today'):\n        return False\n    \n    atr = getattr(row, 'atr', float('nan'))\n    rsi = getattr(row, 'rsi_14', float('nan'))\n    yz_vol_ratio = getattr(row, 'yz_vol_ratio', float('nan'))\n    ma_dist = getattr(row, 'ma_dist', float('nan'))\n    \n    if math.isnan(atr) or atr <= 0 or math.isnan(rsi) or math.isnan(yz_vol_ratio):\n        return False\n    \n    # Condition 1: Low volatility regime\n    if yz_vol_ratio >= params['vol_thresh']:\n        return False\n    \n    # Condition 2: RSI extreme + distance from MA\n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk    = resolve_risk(bst, regime_mult, 'dynamic')\n    \n    # Long: RSI oversold and price stretched below MA\n    if rsi < params['rsi_low'] and not math.isnan(ma_dist) and ma_dist < -params['ma_dist_thresh']:\n        size = rv_size(pair, bst.balance, risk, row.close, sl_dist, row)\n        sc['mr_fired_today'] = True\n        place_pending(sc, ts, 'long',\n                      entry=row.close,\n                      sl=row.close - sl_dist,\n                      tp=row.close + tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n    # Short: RSI overbought and price stretched above MA\n    elif rsi > params['rsi_high'] and not math.isnan(ma_dist) and ma_dist > params['ma_dist_thresh']:\n        size = rv_size(pair, bst.balance, risk, row.close, sl_dist, row)\n        sc['mr_fired_today'] = True\n        place_pending(sc, ts, 'short',\n                      entry=row.close,\n                      sl=row.close + sl_dist,\n                      tp=row.close - tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n    \n    return False",
+      "rationale": "<cite index=\"11-47\">Quiet volatility favors a mean reversion trading strategy.</cite> Enter oversold (RSI<30) or overbought (RSI>70) only when volatility is suppressed and price is far from moving average. This avoids false signals in noisy markets. Source: ForexTester, TradingwithRayner",
+      "behaviour_type": "mean_reversion_low_volatility",
+      "additional_params": {
+        "tp_r": [
+          1.0,
+          2.0
+        ],
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "vol_thresh": [
+          0.6,
+          0.8
+        ],
+        "rsi_low": [
+          25,
+          30
+        ],
+        "rsi_high": [
+          70,
+          75
+        ],
+        "ma_dist_thresh": [
+          1.0,
+          1.5
+        ]
+      },
+      "target_session": "asian",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "false_breakout_liquidity_grab_wick_reversal",
+      "code": "def entry_false_breakout_liquidity_grab_wick_reversal(bst, slot, row, ts, pair, slip, hspd,\n                          sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('grab_fired_today'):\n        return False\n    \n    atr = getattr(row, 'atr', float('nan'))\n    swing_high5 = getattr(row, 'swing_high5', float('nan'))\n    swing_low5  = getattr(row, 'swing_low5', float('nan'))\n    bar_momentum = getattr(row, 'bar_momentum', float('nan'))\n    close_location = getattr(row, 'close_location', float('nan'))\n    \n    if math.isnan(atr) or atr <= 0 or math.isnan(swing_high5) or math.isnan(swing_low5):\n        return False\n    \n    # Condition 1: Prior bar broke above swing_high5 but current bar closed back below it (false breakout long)\n    prev_high = getattr(row, 'high', float('nan'))\n    prev_low  = getattr(row, 'low', float('nan'))\n    \n    if math.isnan(bar_momentum) or math.isnan(close_location):\n        return False\n    \n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk    = resolve_risk(bst, regime_mult, 'dynamic')\n    \n    # Short after wick above and reversal (entry at current close)\n    if bar_momentum < -params['momentum_thresh'] and close_location < 0.3:\n        size = rv_size(pair, bst.balance, risk, row.close, sl_dist, row)\n        sc['grab_fired_today'] = True\n        place_pending(sc, ts, 'short',\n                      entry=row.close,\n                      sl=row.close + sl_dist,\n                      tp=row.close - tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n    # Long after wick below and reversal\n    elif bar_momentum > params['momentum_thresh'] and close_location > 0.7:\n        size = rv_size(pair, bst.balance, risk, row.close, sl_dist, row)\n        sc['grab_fired_today'] = True\n        place_pending(sc, ts, 'long',\n                      entry=row.close,\n                      sl=row.close - sl_dist,\n                      tp=row.close + tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n    \n    return False",
+      "rationale": "<cite index=\"31-1,31-2\">The liquidity grab is only confirmed by what happens immediately after the spike. You must see a powerful, aggressive reversal that breaks local market structure in the opposite direction.</cite> Enter after price wicks beyond swing extreme and closes back inside, targeting reversal to opposite liquidity zone. Source: Orbex, ChartFanatics, ICT",
+      "behaviour_type": "false_breakout_liquidity_grab",
+      "additional_params": {
+        "tp_r": [
+          1.5,
+          2.5
+        ],
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "momentum_thresh": [
+          0.5,
+          0.8
+        ]
+      },
+      "target_session": "asian",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "trend_pullback_ma_confluence",
+      "code": "def entry_trend_pullback_ma_confluence(bst, slot, row, ts, pair, slip, hspd,\n                          sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('pullback_fired_today'):\n        return False\n    \n    atr = getattr(row, 'atr', float('nan'))\n    h1_trend = getattr(row, 'h1_trend', float('nan'))\n    ma_dist = getattr(row, 'ma_dist', float('nan'))\n    momentum_3 = getattr(row, 'momentum_3', float('nan'))\n    \n    if math.isnan(atr) or atr <= 0 or math.isnan(h1_trend) or math.isnan(ma_dist):\n        return False\n    \n    # Condition 1: Clear H1 trend\n    if h1_trend == 0:  # Not trending on H1\n        return False\n    \n    # Condition 2: Pullback to MA with directional bar\n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk    = resolve_risk(bst, regime_mult, 'dynamic')\n    \n    # Long: H1 uptrend, price pulled to/below MA, momentum turning positive\n    if h1_trend > 0 and ma_dist < params['ma_dist_long'] and not math.isnan(momentum_3) and momentum_3 > -params['momentum_thresh']:\n        size = rv_size(pair, bst.balance, risk, row.close, sl_dist, row)\n        sc['pullback_fired_today'] = True\n        place_pending(sc, ts, 'long',\n                      entry=row.close,\n                      sl=row.close - sl_dist,\n                      tp=row.close + tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n    # Short: H1 downtrend, price pulled to/above MA, momentum turning negative\n    elif h1_trend < 0 and ma_dist > -params['ma_dist_long'] and not math.isnan(momentum_3) and momentum_3 < params['momentum_thresh']:\n        size = rv_size(pair, bst.balance, risk, row.close, sl_dist, row)\n        sc['pullback_fired_today'] = True\n        place_pending(sc, ts, 'short',\n                      entry=row.close,\n                      sl=row.close + sl_dist,\n                      tp=row.close - tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n    \n    return False",
+      "rationale": "<cite index=\"12-27,12-28,12-29\">The SMA(20) provides a short-term reference. Entering when price is below it in an uptrend means we're buying weakness. Exiting when price returns to it captures the mean reversion move.</cite> Combine H1 trend direction with M1 pullback to MA for high-probability continuation. Source: Medium, forextester",
+      "behaviour_type": "trend_pullback_continuation",
+      "additional_params": {
+        "tp_r": [
+          1.5,
+          2.5,
+          3.0
+        ],
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "ma_dist_long": [
+          0.5,
+          1.0
+        ],
+        "momentum_thresh": [
+          0.3,
+          0.5
+        ]
+      },
+      "target_session": "asian",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "stop_run_swing_extreme_reversal",
+      "code": "def entry_stop_run_swing_extreme_reversal(bst, slot, row, ts, pair, slip, hspd,\n                          sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('stop_run_fired_today'):\n        return False\n    \n    atr = getattr(row, 'atr', float('nan'))\n    swing_high_dist = getattr(row, 'swing_high_dist', float('nan'))\n    swing_low_dist  = getattr(row, 'swing_low_dist', float('nan'))\n    bar_momentum = getattr(row, 'bar_momentum', float('nan'))\n    close_location = getattr(row, 'close_location', float('nan'))\n    \n    if math.isnan(atr) or atr <= 0 or math.isnan(bar_momentum) or math.isnan(close_location):\n        return False\n    \n    # Distance to swing extremes; low value = near the level\n    near_high = not math.isnan(swing_high_dist) and swing_high_dist < params['swing_dist_thresh']\n    near_low  = not math.isnan(swing_low_dist) and swing_low_dist < params['swing_dist_thresh']\n    \n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk    = resolve_risk(bst, regime_mult, 'dynamic')\n    \n    # Long: Near swing high, strong negative momentum + close near low (wick + reversal)\n    if near_high and bar_momentum < -params['momentum_thresh'] and close_location > 0.6:\n        size = rv_size(pair, bst.balance, risk, row.close, sl_dist, row)\n        sc['stop_run_fired_today'] = True\n        place_pending(sc, ts, 'long',\n                      entry=row.close,\n                      sl=row.close - sl_dist,\n                      tp=row.close + tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n    # Short: Near swing low, strong positive momentum + close near high (wick + reversal)\n    elif near_low and bar_momentum > params['momentum_thresh'] and close_location < 0.4:\n        size = rv_size(pair, bst.balance, risk, row.close, sl_dist, row)\n        sc['stop_run_fired_today'] = True\n        place_pending(sc, ts, 'short',\n                      entry=row.close,\n                      sl=row.close + sl_dist,\n                      tp=row.close - tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n    \n    return False",
+      "rationale": "<cite index=\"31-28,31-29\">Institutions and algorithmic market makers require massive order volume to enter their positions without causing catastrophic slippage. To get that volume, they hunt the areas where retail traders place their stop-losses.</cite> Target swing extremes where stops cluster, wait for wick + reversal candle close, then enter the reversal. Source: Orbex, PriceActionNinja, ICT",
+      "behaviour_type": "stop_run_reversal",
+      "additional_params": {
+        "tp_r": [
+          1.5,
+          2.5
+        ],
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "swing_dist_thresh": [
+          0.5,
+          1.0
+        ],
+        "momentum_thresh": [
+          0.5,
+          0.8
+        ]
+      },
+      "target_session": "asian",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "tick_imbalance_breakout_breakaway",
+      "code": "def entry_tick_imbalance_breakout_breakaway(bst, slot, row, ts, pair, slip, hspd,\n                          sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('imb_breakout_fired'):\n        return False\n    \n    atr = getattr(row, 'atr', float('nan'))\n    persistent_imb = getattr(row, 'persistent_imbalance', float('nan'))\n    bar_range_pct = getattr(row, 'bar_range_pct', float('nan'))\n    swing_high5 = getattr(row, 'swing_high5', float('nan'))\n    swing_low5  = getattr(row, 'swing_low5', float('nan'))\n    \n    if math.isnan(atr) or atr <= 0 or math.isnan(persistent_imb) or math.isnan(bar_range_pct):\n        return False\n    \n    # Condition 1: Sustained directional imbalance\n    if abs(persistent_imb) < params['imb_thresh']:\n        return False\n    \n    # Condition 2: Expansion bar\n    if bar_range_pct < params['bar_range_min']:\n        return False\n    \n    if math.isnan(swing_high5) or math.isnan(swing_low5):\n        return False\n    \n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk    = resolve_risk(bst, regime_mult, 'dynamic')\n    \n    # Long: positive imbalance + expansion, target above swing_high\n    if persistent_imb > params['imb_thresh']:\n        size = rv_size(pair, bst.balance, risk, swing_high5, sl_dist, row)\n        sc['imb_breakout_fired'] = True\n        place_pending(sc, ts, 'long',\n                      entry=swing_high5,\n                      sl=swing_high5 - sl_dist,\n                      tp=swing_high5 + tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='stop_at_level')\n    # Short: negative imbalance + expansion, target below swing_low\n    elif persistent_imb < -params['imb_thresh']:\n        size = rv_size(pair, bst.balance, risk, swing_low5, sl_dist, row)\n        sc['imb_breakout_fired'] = True\n        place_pending(sc, ts, 'short',\n                      entry=swing_low5,\n                      sl=swing_low5 + sl_dist,\n                      tp=swing_low5 - tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='stop_at_level')\n    \n    return False",
+      "rationale": "Strong directional tick imbalance sustained over 5 bars signals sustained buy/sell pressure. Enter at swing extremes when persistent_imbalance + bar_range expansion both confirm aggressive breakout move. <cite index=\"5-2,5-4\">Enter long when price breaks and closes above the Asian session high with increased volume and momentum. Enter short when price breaks and closes below the Asian session low with increased volume and momentum.</cite> Source: traders.mba, retail FX blogs",
+      "behaviour_type": "breakout_continuation",
+      "additional_params": {
+        "tp_r": [
+          1.5,
+          2.5
+        ],
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "imb_thresh": [
+          1.5,
+          2.0,
+          2.5
+        ],
+        "bar_range_min": [
+          1.0,
+          1.2
+        ]
+      },
+      "target_session": "asian",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "vola_regime_shift_hmm_state_change",
+      "code": "def entry_vola_regime_shift_hmm_state_change(bst, slot, row, ts, pair, slip, hspd,\n                          sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('hmm_switch_placed'):\n        return False\n    \n    atr = getattr(row, 'atr', float('nan'))\n    atr_ratio = getattr(row, 'atr_ratio', float('nan'))\n    hmm_transition = getattr(row, 'hmm_transition', float('nan'))\n    swing_high5 = getattr(row, 'swing_high5', float('nan'))\n    swing_low5  = getattr(row, 'swing_low5', float('nan'))\n    \n    if math.isnan(atr) or atr <= 0 or math.isnan(atr_ratio) or math.isnan(hmm_transition):\n        return False\n    \n    # Condition 1: HMM state changed (regime shift)\n    if hmm_transition == 0:\n        return False\n    \n    # Condition 2: Volatility expanding\n    if atr_ratio < params['atr_ratio_min']:\n        return False\n    \n    if math.isnan(swing_high5) or math.isnan(swing_low5):\n        return False\n    \n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk    = resolve_risk(bst, regime_mult, 'dynamic')\n    long_size  = rv_size(pair, bst.balance, risk, swing_high5, sl_dist, row)\n    short_size = rv_size(pair, bst.balance, risk, swing_low5, sl_dist, row)\n    \n    place_oco_pending(\n        sc, ts,\n        long_level=swing_high5,  long_sl=swing_high5 - sl_dist,\n        long_tp=swing_high5 + tp_dist, long_size=long_size, long_dist=sl_dist,\n        short_level=swing_low5, short_sl=swing_low5 + sl_dist,\n        short_tp=swing_low5 - tp_dist, short_size=short_size, short_dist=sl_dist,\n    )\n    sc['hmm_switch_placed'] = True\n    return False",
+      "rationale": "HMM state transition signals regime change. Enter breakout OCO at swing points when volatility inflates (atr_ratio > 1.2) and HMM shows state shift, targeting momentum continuation. Captures volatility cluster and regime flip. Source: microstructure theory, perm_entropy clustering",
+      "behaviour_type": "momentum_ignition_after_compression",
+      "additional_params": {
+        "tp_r": [
+          1.5,
+          2.5
+        ],
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "atr_ratio_min": [
+          1.2,
+          1.5
+        ]
+      },
+      "target_session": "asian",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "hawkes_cluster_order_flow_momentum",
+      "code": "def entry_hawkes_cluster_order_flow_momentum(bst, slot, row, ts, pair, slip, hspd,\n                          sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('hawkes_fired_today'):\n        return False\n    \n    atr = getattr(row, 'atr', float('nan'))\n    hawkes_intensity = getattr(row, 'hawkes_intensity', float('nan'))\n    bar_momentum = getattr(row, 'bar_momentum', float('nan'))\n    swing_high5 = getattr(row, 'swing_high5', float('nan'))\n    swing_low5  = getattr(row, 'swing_low5', float('nan'))\n    \n    if math.isnan(atr) or atr <= 0 or math.isnan(hawkes_intensity) or math.isnan(bar_momentum):\n        return False\n    \n    # Condition 1: High Hawkes intensity (order flow clustering)\n    if hawkes_intensity < params['hawkes_min']:\n        return False\n    \n    # Condition 2: Directional momentum aligns with clustering\n    if bar_momentum > params['momentum_thresh'] and not math.isnan(swing_high5):\n        # Bullish cluster: enter long\n        sl_dist = atr * params['sl_r']\n        tp_dist = atr * params['tp_r']\n        risk    = resolve_risk(bst, regime_mult, 'dynamic')\n        size = rv_size(pair, bst.balance, risk, swing_high5, sl_dist, row)\n        sc['hawkes_fired_today'] = True\n        place_pending(sc, ts, 'long',\n                      entry=swing_high5,\n                      sl=swing_high5 - sl_dist,\n                      tp=swing_high5 + tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='stop_at_level')\n    elif bar_momentum < -params['momentum_thresh'] and not math.isnan(swing_low5):\n        # Bearish cluster: enter short\n        sl_dist = atr * params['sl_r']\n        tp_dist = atr * params['tp_r']\n        risk    = resolve_risk(bst, regime_mult, 'dynamic')\n        size = rv_size(pair, bst.balance, risk, swing_low5, sl_dist, row)\n        sc['hawkes_fired_today'] = True\n        place_pending(sc, ts, 'short',\n                      entry=swing_low5,\n                      sl=swing_low5 + sl_dist,\n                      tp=swing_low5 - tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='stop_at_level')\n    \n    return False",
+      "rationale": "High Hawkes intensity (ratio > 2.0) indicates clustering of informed-flow events. Enter directional trades at swing points when both hawkes_intensity spike AND bar_momentum confirm the direction of the clustering. Source: microstructure literature, Hawkes processes",
+      "behaviour_type": "momentum_ignition_after_compression",
+      "additional_params": {
+        "tp_r": [
+          1.5,
+          2.5
+        ],
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "hawkes_min": [
+          2.0,
+          2.5
+        ],
+        "momentum_thresh": [
+          0.5,
+          0.8
+        ]
+      },
+      "target_session": "asian",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "perm_entropy_structure_breakout_clean",
+      "code": "def entry_perm_entropy_structure_breakout_clean(bst, slot, row, ts, pair, slip, hspd,\n                          sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('perm_ent_placed'):\n        return False\n    \n    atr = getattr(row, 'atr', float('nan'))\n    perm_entropy_100 = getattr(row, 'perm_entropy_100', float('nan'))\n    hurst = getattr(row, 'hurst', float('nan'))\n    swing_high5 = getattr(row, 'swing_high5', float('nan'))\n    swing_low5  = getattr(row, 'swing_low5', float('nan'))\n    \n    if math.isnan(atr) or atr <= 0 or math.isnan(perm_entropy_100) or math.isnan(hurst):\n        return False\n    \n    # Condition 1: Strong trending regime (hurst > 0.55)\n    if hurst <= 0.55:\n        return False\n    \n    # Condition 2: Low entropy = exploitable structure\n    if perm_entropy_100 > 0.85:\n        return False\n    \n    if math.isnan(swing_high5) or math.isnan(swing_low5):\n        return False\n    \n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk    = resolve_risk(bst, regime_mult, 'dynamic')\n    long_size  = rv_size(pair, bst.balance, risk, swing_high5, sl_dist, row)\n    short_size = rv_size(pair, bst.balance, risk, swing_low5, sl_dist, row)\n    \n    place_oco_pending(\n        sc, ts,\n        long_level=swing_high5,  long_sl=swing_high5 - sl_dist,\n        long_tp=swing_high5 + tp_dist, long_size=long_size, long_dist=sl_dist,\n        short_level=swing_low5, short_sl=swing_low5 + sl_dist,\n        short_tp=swing_low5 - tp_dist, short_size=short_size, short_dist=sl_dist,\n    )\n    sc['perm_ent_placed'] = True\n    return False",
+      "rationale": "Low permutation entropy (< 0.85) signals ordinal price structure is exploitable; combined with hurst > 0.55 (trending), these conditions mark high-probability breakout continuation zones. Place OCO when both regime filters align. Source: perm_entropy theory, Bandt-Pompe ordinal analysis",
+      "behaviour_type": "breakout_continuation",
+      "additional_params": {
+        "tp_r": [
+          2.0,
+          3.0
+        ],
+        "sl_r": [
+          1.0,
+          1.5
+        ]
+      },
+      "target_session": "asian",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "near_support_extreme_mean_revert",
+      "code": "def entry_near_support_extreme_mean_revert(bst, slot, row, ts, pair, slip, hspd,\n                          sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('support_mr_fired'):\n        return False\n    \n    atr = getattr(row, 'atr', float('nan'))\n    swing_low_dist = getattr(row, 'swing_low_dist', float('nan'))\n    rsi = getattr(row, 'rsi_14', float('nan'))\n    yz_vol_ratio = getattr(row, 'yz_vol_ratio', float('nan'))\n    momentum_10 = getattr(row, 'momentum_10', float('nan'))\n    \n    if math.isnan(atr) or atr <= 0 or math.isnan(yz_vol_ratio) or math.isnan(rsi):\n        return False\n    \n    # Condition 1: Very close to swing low support\n    if math.isnan(swing_low_dist) or swing_low_dist > params['support_dist_max']:\n        return False\n    \n    # Condition 2: Low volatility + oversold + momentum turning\n    if yz_vol_ratio >= 0.8:\n        return False\n    \n    if rsi > params['rsi_oversold']:\n        return False\n    \n    if not math.isnan(momentum_10) and momentum_10 < -params['momentum_threshold']:\n        sl_dist = atr * params['sl_r']\n        tp_dist = atr * params['tp_r']\n        risk    = resolve_risk(bst, regime_mult, 'dynamic')\n        size = rv_size(pair, bst.balance, risk, row.close, sl_dist, row)\n        sc['support_mr_fired'] = True\n        place_pending(sc, ts, 'long',\n                      entry=row.close,\n                      sl=row.close - sl_dist,\n                      tp=row.close + tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n    \n    return False",
+      "rationale": "<cite index=\"41-26,41-27\">The stop-loss must be logical. For an uptrend pullback, place the stop-loss just below the support level being tested.</cite> Entry at swing low support with low volatility and RSI oversold signals mean reversion bounce. Tight filtering on quiet conditions. Source: Capital.com, pullback trading theory",
+      "behaviour_type": "mean_reversion_low_volatility",
+      "additional_params": {
+        "tp_r": [
+          1.5,
+          2.0,
+          2.5
+        ],
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "support_dist_max": [
+          0.5,
+          1.0
+        ],
+        "rsi_oversold": [
+          30,
+          35
+        ],
+        "momentum_threshold": [
+          0.3,
+          0.5
+        ]
+      },
+      "target_session": "asian",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "london_orb_continuation_vol_expan",
+      "code": "def entry_london_orb_continuation_vol_expan(bst, slot, row, ts, pair, slip, hspd,\n                                            sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('oco_placed_today'):\n        return False\n\n    # London open range: 08:00-08:30 UTC\n    if row.hour != 8 or row.minute != 30:\n        return False\n\n    rh  = getattr(row, 'range_high', float('nan'))\n    rl  = getattr(row, 'range_low',  float('nan'))\n    atr = getattr(row, 'atr',        float('nan'))\n    yz_vol_ratio = getattr(row, 'yz_vol_ratio', float('nan'))\n    \n    if math.isnan(rh) or math.isnan(rl) or math.isnan(atr) or atr <= 0:\n        return False\n    \n    rng = rh - rl\n    if rng <= 0:\n        return False\n\n    # Filter 1: Volatility must be expanding into London (transition from suppressed Asian to normal/high)\n    if math.isnan(yz_vol_ratio) or yz_vol_ratio < 0.8:\n        return False\n\n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk    = resolve_risk(bst, regime_mult, 'dynamic')\n    long_size  = rv_size(pair, bst.balance, risk, rh, sl_dist, row)\n    short_size = rv_size(pair, bst.balance, risk, rl, sl_dist, row)\n\n    place_oco_pending(\n        sc, ts,\n        long_level=rh,  long_sl=rh - sl_dist,\n        long_tp=rh + tp_dist, long_size=long_size, long_dist=sl_dist,\n        short_level=rl, short_sl=rl + sl_dist,\n        short_tp=rl - tp_dist, short_size=short_size, short_dist=sl_dist,\n    )\n    sc['oco_placed_today'] = True\n    return False",
+      "rationale": "Targets the London ORB breakout continuation pattern when volatility is expanding out of the Asian session low-vol baseline. The thesis is that tight Asian ranges resolve sharply into the London open; we place an OCO bracket at 08:00 UTC when the Asian range is confirmed, betting on institutional momentum continuation. Source: newyorkcityservers.com/blog/london-breakout-strategy and quantifiedstrategies.com.",
+      "behaviour_type": "breakout_continuation",
+      "additional_params": {
+        "sl_r": [
+          1.0,
+          1.5,
+          2.0
+        ],
+        "tp_r": [
+          1.5,
+          2.5,
+          3.5
+        ]
+      },
+      "target_session": "london",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "london_stop_hunt_reversal",
+      "code": "def entry_london_stop_hunt_reversal(bst, slot, row, ts, pair, slip, hspd,\n                                     sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('fired_today'):\n        return False\n\n    # Trade only during early London (08:30-10:00 UTC, after the ORB range is set)\n    if row.hour < 8 or row.hour >= 10 or (row.hour == 8 and row.minute < 30):\n        return False\n\n    atr = getattr(row, 'atr', float('nan'))\n    asian_high = getattr(row, 'asian_high', float('nan'))\n    asian_low  = getattr(row, 'asian_low', float('nan'))\n    close = row.close\n    \n    if math.isnan(atr) or atr <= 0:\n        return False\n    if math.isnan(asian_high) or math.isnan(asian_low):\n        return False\n\n    # Filter 1: We expect a reversal from one extreme. If close is near or wicked above asian_high, \n    # signal is potential short (liquidity grabbed at highs, reversing down).\n    # If close is near or wicked below asian_low, signal is potential long (liquidity grabbed at lows, reversing up).\n    \n    high_dist_to_ah = (asian_high - close) / atr if asian_high > 0 else float('nan')\n    low_dist_to_al  = (close - asian_low) / atr if asian_low > 0 else float('nan')\n    \n    if math.isnan(high_dist_to_ah):\n        high_dist_to_ah = 10.0\n    if math.isnan(low_dist_to_al):\n        low_dist_to_al = 10.0\n\n    # Filter 2: Persistent imbalance helps confirm direction of reversal\n    persistent_imb = getattr(row, 'persistent_imbalance', float('nan'))\n    if math.isnan(persistent_imb):\n        persistent_imb = 0.0\n\n    # Long scenario: close is near/below asian_low AND persistent imbalance is positive (buying pressure after dip)\n    if low_dist_to_al < params['grab_dist_thresh'] and persistent_imb > 0.5:\n        sl_dist = atr * params['sl_r']\n        tp_dist = atr * params['tp_r']\n        risk = resolve_risk(bst, regime_mult, 'dynamic')\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'long',\n                      entry=close,\n                      sl=close - sl_dist,\n                      tp=close + tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n\n    # Short scenario: close is near/above asian_high AND persistent imbalance is negative (selling pressure after spike)\n    elif high_dist_to_ah < params['grab_dist_thresh'] and persistent_imb < -0.5:\n        sl_dist = atr * params['sl_r']\n        tp_dist = atr * params['tp_r']\n        risk = resolve_risk(bst, regime_mult, 'dynamic')\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'short',\n                      entry=close,\n                      sl=close + sl_dist,\n                      tp=close - tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n\n    return False",
+      "rationale": "Trades the false breakout / stop-run pattern during London open when price aggressively sweeps the Asian session extreme (high or low) and quickly reverses. The thesis: institutions grab liquidity at Asian highs/lows early in London, then reverse. We wait for a decisive reversal candle after the sweep. Source: tradingstrategyguides.com/lecture-11-smc-strategy-for-the-london-session and forexfactory.com threads on London manipulation.",
+      "behaviour_type": "stop_run_reversal",
+      "additional_params": {
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "tp_r": [
+          2.0,
+          3.0
+        ],
+        "grab_dist_thresh": [
+          0.5,
+          1.0
+        ]
+      },
+      "target_session": "london",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "london_mean_revert_rsi_bb",
+      "code": "def entry_london_mean_revert_rsi_bb(bst, slot, row, ts, pair, slip, hspd,\n                                     sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('fired_today'):\n        return False\n\n    # Mid-London session (10:00-12:00 UTC), when volatility is often flat before NY prep\n    if row.hour < 10 or row.hour >= 12:\n        return False\n\n    atr = getattr(row, 'atr', float('nan'))\n    bb_pct = getattr(row, 'bb_pct', float('nan'))\n    rsi = getattr(row, 'rsi_14', float('nan'))\n    close = row.close\n    \n    if math.isnan(atr) or atr <= 0:\n        return False\n    if math.isnan(bb_pct) or math.isnan(rsi):\n        return False\n\n    # Filter 1: Price must be stretched (outside Bollinger Bands)\n    # bb_pct > 1.05 = above upper band, < -0.05 = below lower band\n    if not (bb_pct > params['bb_extreme_high'] or bb_pct < params['bb_extreme_low']):\n        return False\n\n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk = resolve_risk(bst, regime_mult, 'dynamic')\n\n    # Short: price above upper band (overbought), RSI confirms\n    if bb_pct > params['bb_extreme_high'] and rsi > params['rsi_overbought']:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'short',\n                      entry=close,\n                      sl=close + sl_dist,\n                      tp=close - tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n\n    # Long: price below lower band (oversold), RSI confirms\n    elif bb_pct < params['bb_extreme_low'] and rsi < params['rsi_oversold']:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'long',\n                      entry=close,\n                      sl=close - sl_dist,\n                      tp=close + tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n\n    return False",
+      "rationale": "Targets mean reversion when price stretches beyond Bollinger Band %B extremes during low-volatility London mid-session (10:00-12:00 UTC), with RSI confirmation. The thesis: in quiet markets, price snaps back to the mean faster. We use bb_pct and rsi_14 to identify extremes and enter reversions. Source: tradewink.com/learn/mean-reversion-strategy and newyorkcityservers.com/blog/mean-reversion-trading-forex.",
+      "behaviour_type": "mean_reversion_low_volatility",
+      "additional_params": {
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "tp_r": [
+          1.5,
+          2.5
+        ],
+        "bb_extreme_high": [
+          1.05,
+          1.2
+        ],
+        "bb_extreme_low": [
+          -0.2,
+          -0.05
+        ],
+        "rsi_overbought": [
+          70,
+          75
+        ],
+        "rsi_oversold": [
+          25,
+          30
+        ]
+      },
+      "target_session": "london",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "london_h1_trend_pullback_cont",
+      "code": "def entry_london_h1_trend_pullback_cont(bst, slot, row, ts, pair, slip, hspd,\n                                        sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('fired_today'):\n        return False\n\n    # Trade pullbacks during London session and into early NY overlap (08:00-16:00 UTC)\n    if row.hour < 8 or row.hour >= 16:\n        return False\n\n    atr = getattr(row, 'atr', float('nan'))\n    h1_trend = getattr(row, 'h1_trend', float('nan'))\n    close = row.close\n    \n    # Swing levels for pullback identification\n    swing_high5 = getattr(row, 'swing_high5', float('nan'))\n    swing_low5  = getattr(row, 'swing_low5', float('nan'))\n    swing_high_dist = getattr(row, 'swing_high_dist', float('nan'))\n    swing_low_dist  = getattr(row, 'swing_low_dist', float('nan'))\n    \n    if math.isnan(atr) or atr <= 0:\n        return False\n    if math.isnan(h1_trend) or h1_trend == 0:\n        return False\n    if math.isnan(swing_high5) or math.isnan(swing_low5):\n        return False\n    if math.isnan(swing_high_dist) or math.isnan(swing_low_dist):\n        return False\n\n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk = resolve_risk(bst, regime_mult, 'dynamic')\n\n    # Filter 1: H1 trend is up (h1_trend > 0)\n    # Filter 2: Price has pulled back near swing_low (low_dist < threshold = close to recent support)\n    # This is a bullish pullback-continuation setup\n    if h1_trend > 0 and swing_low_dist < params['pullback_thresh']:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'long',\n                      entry=close,\n                      sl=close - sl_dist,\n                      tp=close + tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n\n    # Filter 1: H1 trend is down (h1_trend < 0)\n    # Filter 2: Price has pulled back near swing_high (high_dist < threshold = close to recent resistance)\n    # This is a bearish pullback-continuation setup\n    elif h1_trend < 0 and swing_high_dist < params['pullback_thresh']:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'short',\n                      entry=close,\n                      sl=close + sl_dist,\n                      tp=close - tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n\n    return False",
+      "rationale": "Trades pullback-continuation within the larger H1 trend established during/before London. Entry: price pulls back to a key support/resistance (swing_low_dist or swing_high_dist) within the established H1 trend direction. The thesis: London sets the daily trend; micro-pullbacks within that trend offer high-probability entries. Source: tradingstrategyguides.com/lecture-11-smc-strategy-for-the-london-session.",
+      "behaviour_type": "trend_pullback_continuation",
+      "additional_params": {
+        "sl_r": [
+          1.0,
+          1.5,
+          2.0
+        ],
+        "tp_r": [
+          1.5,
+          2.5,
+          3.5
+        ],
+        "pullback_thresh": [
+          0.3,
+          0.5,
+          0.7
+        ]
+      },
+      "target_session": "london",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "london_momentum_ig_aft_compress",
+      "code": "def entry_london_momentum_ig_aft_compress(bst, slot, row, ts, pair, slip, hspd,\n                                          sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('fired_today'):\n        return False\n\n    # Early London when momentum ignitions are common (08:30-10:30 UTC)\n    if row.hour < 8 or row.hour > 10 or (row.hour == 8 and row.minute < 30):\n        return False\n\n    atr = getattr(row, 'atr', float('nan'))\n    yz_vol_ratio = getattr(row, 'yz_vol_ratio', float('nan'))\n    persistent_imb = getattr(row, 'persistent_imbalance', float('nan'))\n    close = row.close\n    \n    if math.isnan(atr) or atr <= 0:\n        return False\n    if math.isnan(yz_vol_ratio) or math.isnan(persistent_imb):\n        return False\n\n    # Filter 1: Vol ratio shows compression-to-expansion transition (was <0.7, now rising toward normal)\n    if yz_vol_ratio < params['vol_expand_thresh']:\n        return False\n\n    # Filter 2: Persistent imbalance shows sustained directional flow (positive or negative, >\u00b1threshold)\n    if abs(persistent_imb) < params['imb_persist_thresh']:\n        return False\n\n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk = resolve_risk(bst, regime_mult, 'dynamic')\n\n    # Long: vol expanding + sustained buying pressure\n    if persistent_imb > params['imb_persist_thresh']:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'long',\n                      entry=close,\n                      sl=close - sl_dist,\n                      tp=close + tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n\n    # Short: vol expanding + sustained selling pressure\n    elif persistent_imb < -params['imb_persist_thresh']:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'short',\n                      entry=close,\n                      sl=close + sl_dist,\n                      tp=close - tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n\n    return False",
+      "rationale": "Targets momentum burst after volatility compression (yz_vol_ratio < 0.7) that resolves into directional move. Entry: when yz_vol_ratio crosses above a threshold AND persistent_imbalance shows sustained directional flow. The thesis: tight consolidation + sustained imbalance = explosive momentum ignition, common in early London as liquidity arrives. Source: tradewink.com and academic volatility regime patterns.",
+      "behaviour_type": "momentum_ignition_after_compression",
+      "additional_params": {
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "tp_r": [
+          2.0,
+          3.0
+        ],
+        "vol_expand_thresh": [
+          0.8,
+          1.0
+        ],
+        "imb_persist_thresh": [
+          1.0,
+          1.5
+        ]
+      },
+      "target_session": "london",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "london_false_breakout_fvg_retest",
+      "code": "def entry_london_false_breakout_fvg_retest(bst, slot, row, ts, pair, slip, hspd,\n                                            sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('fired_today'):\n        return False\n\n    # Early to mid London, when ORB breaks are tested/faked (08:30-11:00 UTC)\n    if row.hour < 8 or row.hour > 11 or (row.hour == 8 and row.minute < 30):\n        return False\n\n    atr = getattr(row, 'atr', float('nan'))\n    range_high = getattr(row, 'range_high', float('nan'))\n    range_low  = getattr(row, 'range_low', float('nan'))\n    close = row.close\n    high = row.high\n    low = row.low\n    \n    if math.isnan(atr) or atr <= 0:\n        return False\n    if math.isnan(range_high) or math.isnan(range_low):\n        return False\n\n    # Detect false breakout: wick above range_high but close below it (or vice versa for short)\n    # Long signal: high > range_high (wick above), close <= range_high (reversal back inside)\n    # Short signal: low < range_low (wick below), close >= range_low (reversal back inside)\n\n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk = resolve_risk(bst, regime_mult, 'dynamic')\n\n    # Long scenario: fake breakout above range, quick reversal signals continuation down initially before reversal up\n    # Wait for close back INSIDE range after upper wick\n    wick_above_rh = high - range_high\n    if wick_above_rh > params['min_wick_dist'] * atr and close <= range_high:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        # Entry at close, SL beyond the wick, TP targets mean reversion\n        place_pending(sc, ts, 'short',\n                      entry=close,\n                      sl=close + sl_dist,\n                      tp=close - tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n\n    # Short scenario: fake breakout below range, quick reversal signals continuation up initially before reversal down\n    # Wait for close back INSIDE range after lower wick\n    wick_below_rl = range_low - low\n    if wick_below_rl > params['min_wick_dist'] * atr and close >= range_low:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'long',\n                      entry=close,\n                      sl=close - sl_dist,\n                      tp=close + tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n\n    return False",
+      "rationale": "Capitalizes on false breakout of the ORB range when a candlestick wicks beyond the opening range high/low but closes back inside, leaving a Fair Value Gap (FVG) that reverses sharply. Entry: on the close of the reversal candle after the wick-and-reverse. Stops placed beyond the wick extreme. Source: ftmo.com and tradingstrategyguides.com on London manipulation patterns.",
+      "behaviour_type": "false_breakout_liquidity_grab",
+      "additional_params": {
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "tp_r": [
+          1.5,
+          2.5
+        ],
+        "min_wick_dist": [
+          0.3,
+          0.5
+        ]
+      },
+      "target_session": "london",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "london_ema_cross_early_trend",
+      "code": "def entry_london_ema_cross_early_trend(bst, slot, row, ts, pair, slip, hspd,\n                                       sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('fired_today'):\n        return False\n\n    # Early London (08:00-10:00 UTC)\n    if row.hour < 8 or row.hour >= 10:\n        return False\n\n    atr = getattr(row, 'atr', float('nan'))\n    h1_trend = getattr(row, 'h1_trend', float('nan'))\n    h1_trend_strength = getattr(row, 'h1_trend_strength', float('nan'))\n    close = row.close\n    \n    if math.isnan(atr) or atr <= 0:\n        return False\n    if math.isnan(h1_trend) or h1_trend == 0:\n        return False\n    if math.isnan(h1_trend_strength):\n        return False\n\n    # Filter 1: H1 trend is established (h1_trend > 0 for up, < 0 for down)\n    # Filter 2: Trend strength is sufficient (magnitude in ATR units > threshold)\n    if abs(h1_trend_strength) < params['trend_strength_min']:\n        return False\n\n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk = resolve_risk(bst, regime_mult, 'dynamic')\n\n    # Long: H1 uptrend with sufficient strength\n    if h1_trend > 0 and h1_trend_strength > params['trend_strength_min']:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'long',\n                      entry=close,\n                      sl=close - sl_dist,\n                      tp=close + tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n\n    # Short: H1 downtrend with sufficient strength\n    elif h1_trend < 0 and h1_trend_strength < -params['trend_strength_min']:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'short',\n                      entry=close,\n                      sl=close + sl_dist,\n                      tp=close - tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n\n    return False",
+      "rationale": "Targets early trend establishment via H1 EMA/price cross signals during London open (08:00-10:00 UTC). Entry triggered when price breaks above/below H1 EMA60 with positive h1_trend_strength magnitude. The thesis: institutional positioning sets H1 trend early in London; crossing the EMA signals commitment. Source: forexfactory.com and multiple ORB trader journals emphasizing EMA alignment.",
+      "behaviour_type": "breakout_continuation",
+      "additional_params": {
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "tp_r": [
+          2.0,
+          3.0
+        ],
+        "trend_strength_min": [
+          0.5,
+          0.8
+        ]
+      },
+      "target_session": "london",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "london_adx_flow_confirmation",
+      "code": "def entry_london_adx_flow_confirmation(bst, slot, row, ts, pair, slip, hspd,\n                                       sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('fired_today'):\n        return False\n\n    # Trade during London breakout phase (08:30-11:00 UTC)\n    if row.hour < 8 or row.hour > 11 or (row.hour == 8 and row.minute < 30):\n        return False\n\n    atr = getattr(row, 'atr', float('nan'))\n    adx = getattr(row, 'adx', float('nan'))\n    persistent_imb = getattr(row, 'persistent_imbalance', float('nan'))\n    h1_trend = getattr(row, 'h1_trend', float('nan'))\n    close = row.close\n    \n    if math.isnan(atr) or atr <= 0:\n        return False\n    if math.isnan(adx) or math.isnan(persistent_imb):\n        return False\n    if math.isnan(h1_trend) or h1_trend == 0:\n        return False\n\n    # Filter 1: ADX > 25 confirms strong trend\n    if adx <= params['adx_min']:\n        return False\n\n    # Filter 2: Persistent imbalance aligns with H1 trend direction\n    # Up trend: need positive imbalance (buying pressure)\n    # Down trend: need negative imbalance (selling pressure)\n    imb_aligned = (h1_trend > 0 and persistent_imb > params['imb_min']) or \\\n                  (h1_trend < 0 and persistent_imb < -params['imb_min'])\n    if not imb_aligned:\n        return False\n\n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk = resolve_risk(bst, regime_mult, 'dynamic')\n\n    # Long: uptrend confirmed by ADX + buying flow\n    if h1_trend > 0 and persistent_imb > params['imb_min']:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'long',\n                      entry=close,\n                      sl=close - sl_dist,\n                      tp=close + tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n\n    # Short: downtrend confirmed by ADX + selling flow\n    elif h1_trend < 0 and persistent_imb < -params['imb_min']:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'short',\n                      entry=close,\n                      sl=close + sl_dist,\n                      tp=close - tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n\n    return False",
+      "rationale": "Combines ADX trend strength filter with tick_imbalance (order flow) confirmation during London ORB. Entry: when ADX > 25 (confirmed trend) AND persistent_imbalance aligns with direction. The thesis: trending markets confirmed by flow imbalance offer higher-conviction breakout continuations. Avoids whipsaws in ranging pre-breakout periods. Source: quantifiedstrategies.com and retail trader best-practices.",
+      "behaviour_type": "breakout_continuation",
+      "additional_params": {
+        "sl_r": [
+          1.0,
+          1.5,
+          2.0
+        ],
+        "tp_r": [
+          1.5,
+          2.5,
+          3.5
+        ],
+        "adx_min": [
+          25,
+          30
+        ],
+        "imb_min": [
+          0.5,
+          1.0
+        ]
+      },
+      "target_session": "london",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "london_bb_squeeze_breakout",
+      "code": "def entry_london_bb_squeeze_breakout(bst, slot, row, ts, pair, slip, hspd,\n                                     sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n\n    # Track prior bar's bb_pct to detect squeeze state\n    if not sc.get('bb_pct_prev'):\n        sc['bb_pct_prev'] = getattr(row, 'bb_pct', 0.5)\n\n    if sc.get('fired_today'):\n        return False\n\n    # London session (08:00-13:00 UTC)\n    if row.hour < 8 or row.hour >= 13:\n        return False\n\n    atr = getattr(row, 'atr', float('nan'))\n    bb_pct = getattr(row, 'bb_pct', float('nan'))\n    bb_pct_prev = sc.get('bb_pct_prev', 0.5)\n    close = row.close\n    \n    if math.isnan(atr) or atr <= 0:\n        return False\n    if math.isnan(bb_pct):\n        return False\n\n    # Detect squeeze: prior bar bb_pct in middle zone (0.4 to 0.6)\n    # Current bar breaks out: bb_pct < 0 (below lower band) or > 1 (above upper band)\n    squeeze_detected = params['bb_squeeze_low'] <= bb_pct_prev <= params['bb_squeeze_high']\n\n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk = resolve_risk(bst, regime_mult, 'dynamic')\n\n    # Long: was in squeeze, now below lower band = downside breakout \u2192 revert to long as squeeze resolves upward\n    if squeeze_detected and bb_pct > params['bb_extreme_high']:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'long',\n                      entry=close,\n                      sl=close - sl_dist,\n                      tp=close + tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n\n    # Short: was in squeeze, now above upper band = upside breakout \u2192 fades\n    elif squeeze_detected and bb_pct < params['bb_extreme_low']:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'short',\n                      entry=close,\n                      sl=close + sl_dist,\n                      tp=close - tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n\n    # Update prior bb_pct for next bar\n    sc['bb_pct_prev'] = bb_pct\n    return False",
+      "rationale": "Trades the Bollinger Band squeeze-into-breakout pattern: when bb_pct is near midline (0.4-0.6 range, indicating compression) and then price breaks one band on the next bar, we enter in breakout direction. The thesis: tight consolidation precedes directional volatility. Entry on the bar AFTER the squeeze is confirmed. Source: tradewink.com and bollinger-band squeeze literature.",
+      "behaviour_type": "momentum_ignition_after_compression",
+      "additional_params": {
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "tp_r": [
+          1.5,
+          2.5
+        ],
+        "bb_squeeze_low": [
+          0.3,
+          0.4
+        ],
+        "bb_squeeze_high": [
+          0.6,
+          0.7
+        ],
+        "bb_extreme_high": [
+          1.0,
+          1.1
+        ],
+        "bb_extreme_low": [
+          -0.1,
+          0.0
+        ]
+      },
+      "target_session": "london",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "london_open_range_gap_retest",
+      "code": "def entry_london_open_range_gap_retest(bst, slot, row, ts, pair, slip, hspd,\n                                       sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('fired_today'):\n        return False\n\n    # Trade after the ORB range is closed (08:30 UTC), through mid-London (11:00 UTC)\n    if row.hour < 8 or row.hour > 11 or (row.hour == 8 and row.minute < 30):\n        return False\n\n    atr = getattr(row, 'atr', float('nan'))\n    range_high = getattr(row, 'range_high', float('nan'))\n    range_low  = getattr(row, 'range_low', float('nan'))\n    close = row.close\n    \n    if math.isnan(atr) or atr <= 0:\n        return False\n    if math.isnan(range_high) or math.isnan(range_low):\n        return False\n\n    rng = range_high - range_low\n    if rng <= 0:\n        return False\n\n    # Calculate midpoint of ORB range\n    range_mid = (range_high + range_low) / 2.0\n\n    # Detect pullback-retest conditions:\n    # If price broke above range_high and pulled back to retest midpoint/range_high \u2192 entry is long\n    # If price broke below range_low and pulled back to retest midpoint/range_low \u2192 entry is short\n    \n    dist_to_mid = abs(close - range_mid) / atr if atr > 0 else 10.0\n    dist_to_rh = abs(close - range_high) / atr if atr > 0 else 10.0\n    dist_to_rl = abs(close - range_low) / atr if atr > 0 else 10.0\n\n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk = resolve_risk(bst, regime_mult, 'dynamic')\n\n    # Long retest: price pulled back to near range_high or midpoint after initial breakout above range_high\n    if close > range_high and dist_to_mid < params['retest_thresh'] * atr:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'long',\n                      entry=close,\n                      sl=close - sl_dist,\n                      tp=close + tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n\n    # Short retest: price pulled back to near range_low or midpoint after initial breakout below range_low\n    elif close < range_low and dist_to_mid < params['retest_thresh'] * atr:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'short',\n                      entry=close,\n                      sl=close + sl_dist,\n                      tp=close - tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n\n    return False",
+      "rationale": "Trades pullbacks that retest the opening range midpoint or key price levels after a directional breakout. Entry: after initial ORB breakout (range_high or range_low breached), we wait for price to pull back and retest key support/resistance, then enter continuation. The thesis: strong breakouts typically see profit-taking pullbacks before resuming; retest confirms support. Source: ftmo.com and crosstrade.io on ORB pullback entries.",
+      "behaviour_type": "trend_pullback_continuation",
+      "additional_params": {
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "tp_r": [
+          1.5,
+          2.5,
+          3.0
+        ],
+        "retest_thresh": [
+          0.5,
+          0.75,
+          1.0
+        ]
+      },
+      "target_session": "london",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "london_dxy_eurusd_corr_breakdown",
+      "code": "def entry_london_dxy_eurusd_corr_breakdown(bst, slot, row, ts, pair, slip, hspd,\n                                           sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('fired_today'):\n        return False\n\n    # Mid-London, when correlation breakdowns are visible (10:00-12:00 UTC)\n    if row.hour < 10 or row.hour >= 12:\n        return False\n\n    # Only applicable to EUR_USD pair\n    if pair != 'EUR_USD':\n        return False\n\n    atr = getattr(row, 'atr', float('nan'))\n    eu_gu_corr20 = getattr(row, 'eu_gu_corr20', float('nan'))\n    dxy_change_5 = getattr(row, 'dxy_change_5', float('nan'))\n    close = row.close\n    \n    if math.isnan(atr) or atr <= 0:\n        return False\n    if math.isnan(eu_gu_corr20) or math.isnan(dxy_change_5):\n        return False\n\n    # Filter 1: Correlation has broken down (< 0.5 indicates decoupling)\n    if eu_gu_corr20 > params['corr_breakdown_thresh']:\n        return False\n\n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk = resolve_risk(bst, regime_mult, 'dynamic')\n\n    # Long EUR/USD: correlation broken + DXY weakening (negative dxy_change)\n    # When USD weakens, EUR/USD tends to rise; decoupling reverts\n    if dxy_change_5 < -params['dxy_move_min']:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'long',\n                      entry=close,\n                      sl=close - sl_dist,\n                      tp=close + tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n\n    # Short EUR/USD: correlation broken + DXY strengthening (positive dxy_change)\n    # When USD strengthens, EUR/USD tends to fall; decoupling reverts\n    elif dxy_change_5 > params['dxy_move_min']:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'short',\n                      entry=close,\n                      sl=close + sl_dist,\n                      tp=close - tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n\n    return False",
+      "rationale": "Trades correlation breakdowns between USD strength (dxy_proxy) and EUR/USD during London. When eu_gu_corr20 drops below 0.5 (pairs decouple), and DXY shows opposing direction vs EUR/USD, mean reversion of the decoupling offers entry. The thesis: correlated pairs tend to revert; decoupling is temporary during news/volatility, reverting quickly. Source: Academic pairs trading and correlation regime literature.",
+      "behaviour_type": "mean_reversion_low_volatility",
+      "additional_params": {
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "tp_r": [
+          1.5,
+          2.0
+        ],
+        "corr_breakdown_thresh": [
+          0.4,
+          0.5
+        ],
+        "dxy_move_min": [
+          0.2,
+          0.3
+        ]
+      },
+      "target_session": "london",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "ny_orb_breakout_range_continuation",
+      "code": "def entry_ny_orb_breakout_range_continuation(bst, slot, row, ts, pair, slip, hspd,\n                                            sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('oco_placed_today'):\n        return False\n    \n    # NY ORB: 14:30-15:00 UTC range close at 15:00\n    if row.hour != 15 or row.minute != 0:\n        return False\n\n    rh  = getattr(row, 'range_high', float('nan'))\n    rl  = getattr(row, 'range_low',  float('nan'))\n    atr = getattr(row, 'atr',        float('nan'))\n    if math.isnan(rh) or math.isnan(rl) or math.isnan(atr) or atr <= 0:\n        return False\n    rng = rh - rl\n    if rng <= 0:\n        return False\n\n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk    = resolve_risk(bst, regime_mult, 'dynamic')\n    long_size  = rv_size(pair, bst.balance, risk, rh, sl_dist, row)\n    short_size = rv_size(pair, bst.balance, risk, rl, sl_dist, row)\n\n    place_oco_pending(\n        sc, ts,\n        long_level=rh,  long_sl=rh - sl_dist,\n        long_tp=rh + tp_dist, long_size=long_size, long_dist=sl_dist,\n        short_level=rl, short_sl=rl + sl_dist,\n        short_tp=rl - tp_dist, short_size=short_size, short_dist=sl_dist,\n    )\n    sc['oco_placed_today'] = True\n    return False",
+      "rationale": "NY ORB on 14:30-15:00 range (sources: FXCC, LiteFinance). <cite index=\"1-1,1-11\">By focusing on pre-market consolidation ranges and identifying support and resistance levels, the New York breakout strategy provides clear entry and exit points.</cite> OCO bracket on high/low of range at NY session start detects which direction breaks first and follows through into London-NY overlap liquidity surge.",
+      "behaviour_type": "breakout_continuation",
+      "additional_params": {
+        "tp_r": [
+          1.0,
+          2.0,
+          3.0,
+          4.0
+        ],
+        "sl_r": [
+          1.0,
+          1.5,
+          2.0
+        ]
+      },
+      "target_session": "ny",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "asian_high_low_liquidity_sweep_reversal",
+      "code": "def entry_asian_high_low_liquidity_sweep_reversal(bst, slot, row, ts, pair, slip, hspd,\n                                                  sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('fired_today'):\n        return False\n    \n    # Trade NY session 15:00-21:00 UTC, after Asian close\n    if row.hour < 15 or row.hour >= 21:\n        return False\n\n    ah = getattr(row, 'asian_high', float('nan'))\n    al = getattr(row, 'asian_low',  float('nan'))\n    atr = getattr(row, 'atr', float('nan'))\n    close = getattr(row, 'close', float('nan'))\n    \n    if math.isnan(ah) or math.isnan(al) or math.isnan(atr) or atr <= 0 or math.isnan(close):\n        return False\n    \n    # Filter: only trade if regime not strongly trending (mean-reversion bias)\n    hurst = getattr(row, 'hurst', float('nan'))\n    if not math.isnan(hurst) and hurst > 0.60:\n        return False\n    \n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk = resolve_risk(bst, regime_mult, 'dynamic')\n\n    # Setup: price wicks above Asian high \u2192 we short on pullback into order block\n    if close > ah and close < ah + atr * 0.5:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'short',\n                      entry=close,\n                      sl=close + sl_dist,\n                      tp=close - tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n    # Setup: price wicks below Asian low \u2192 we long on pullback\n    elif close < al and close > al - atr * 0.5:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'long',\n                      entry=close,\n                      sl=close - sl_dist,\n                      tp=close + tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n    \n    return False",
+      "rationale": "Smart Money \"stop hunt\" thesis (sources: Medium 2026, EBC, B2Prime). <cite index=\"2-9\">NY session moves often begin with a wick above the Asian high \u2192 drop</cite>, trapping breakout traders. Trade reverses after sweep: buy above Asian high for short reversal; sell below Asian low for long reversal. Tight stop above/below the wick.",
+      "behaviour_type": "false_breakout_liquidity_grab",
+      "additional_params": {
+        "tp_r": [
+          1.5,
+          2.5
+        ],
+        "sl_r": [
+          1.0,
+          1.5
+        ]
+      },
+      "target_session": "ny",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "mean_reversion_sma50_filter_overextension",
+      "code": "def entry_mean_reversion_sma50_filter_overextension(bst, slot, row, ts, pair, slip, hspd,\n                                                     sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('fired_today'):\n        return False\n    \n    # NY session 15:00-21:00 UTC\n    if row.hour < 15 or row.hour >= 21:\n        return False\n\n    close = getattr(row, 'close', float('nan'))\n    atr   = getattr(row, 'atr', float('nan'))\n    ma_trend = getattr(row, 'ma_trend', float('nan'))  # 200-SMA\n    yz_ratio = getattr(row, 'yz_vol_ratio', float('nan'))\n    \n    if math.isnan(close) or math.isnan(atr) or atr <= 0 or math.isnan(ma_trend):\n        return False\n    \n    # Filter 1: Only trade in low-vol regime (compressed vol expansion potential low)\n    if not math.isnan(yz_ratio) and yz_ratio > 1.0:\n        return False  # Skip elevated vol\n    \n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk = resolve_risk(bst, regime_mult, 'dynamic')\n    \n    # Long: price above 200-SMA (trend), but extended down from it \u2192 fade\n    if close > ma_trend and (close < ma_trend - atr * params['revert_threshold']):\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'long',\n                      entry=close,\n                      sl=close - sl_dist,\n                      tp=close + tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n    # Short: price below 200-SMA (downtrend), but extended up from it \u2192 fade\n    elif close < ma_trend and (close > ma_trend + atr * params['revert_threshold']):\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'short',\n                      entry=close,\n                      sl=close + sl_dist,\n                      tp=close - tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n    \n    return False",
+      "rationale": "<cite index=\"21-43,21-44,21-45\">SMA(50) acts as trend filter; for longs, only enter when price is above this line to ensure buying dips in uptrends; this single rule eliminates most losing trades.</cite> NY session: buy dips to 20-SMA while above 50-SMA in low-vol, ranging regime. Tight exit back to mean.",
+      "behaviour_type": "mean_reversion_low_volatility",
+      "additional_params": {
+        "tp_r": [
+          1.0,
+          2.0,
+          3.0
+        ],
+        "sl_r": [
+          1.5,
+          2.0
+        ],
+        "revert_threshold": [
+          0.3,
+          0.5
+        ]
+      },
+      "target_session": "ny",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "delta_momentum_flow_acceleration_breakout",
+      "code": "def entry_delta_momentum_flow_acceleration_breakout(bst, slot, row, ts, pair, slip, hspd,\n                                                    sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('fired_today'):\n        return False\n    \n    if row.hour < 14 or row.hour >= 21:\n        return False\n\n    atr = getattr(row, 'atr', float('nan'))\n    close = getattr(row, 'close', float('nan'))\n    yz_ratio = getattr(row, 'yz_vol_ratio', float('nan'))\n    yz_min_20 = getattr(row, 'yz_vol', float('nan'))\n    yz_med_60 = getattr(row, 'rv_median', float('nan'))\n    tick_imb = getattr(row, 'tick_imbalance', float('nan'))\n    persistent_imb = getattr(row, 'persistent_imbalance', float('nan'))\n    agg_buy = getattr(row, 'aggressive_buy_ratio', float('nan'))\n    \n    if math.isnan(atr) or atr <= 0 or math.isnan(close) or math.isnan(tick_imb):\n        return False\n    \n    # Compression phase: yz_vol_ratio < threshold (low volatility)\n    if not math.isnan(yz_ratio) and yz_ratio > params['vol_max']:\n        return False\n    \n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk = resolve_risk(bst, regime_mult, 'dynamic')\n    \n    # Breakout trigger: strong tick imbalance + persistent flow + rising aggression\n    if not math.isnan(persistent_imb) and not math.isnan(agg_buy):\n        if persistent_imb > params['flow_threshold'] and agg_buy > params['agg_threshold']:\n            size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n            sc['fired_today'] = True\n            place_pending(sc, ts, 'long',\n                          entry=close,\n                          sl=close - sl_dist,\n                          tp=close + tp_dist,\n                          size=size, dist=sl_dist,\n                          mode='market_next_open')\n        elif persistent_imb < -params['flow_threshold'] and agg_buy < 1.0 - params['agg_threshold']:\n            size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n            sc['fired_today'] = True\n            place_pending(sc, ts, 'short',\n                          entry=close,\n                          sl=close + sl_dist,\n                          tp=close - tp_dist,\n                          size=size, dist=sl_dist,\n                          mode='market_next_open')\n    \n    return False",
+      "rationale": "Order flow thesis (sources: Nordfx, TradingView order flow guides). <cite index=\"39-2,39-3\">If delta builds in same direction as initial spike, continuation likely; if fades, price struggles</cite>. Identify vol compression (yz_vol_ratio low), then trade breakout direction confirmed by positive persistent_imbalance + aggressive_buy_ratio spiking.",
+      "behaviour_type": "momentum_ignition_after_compression",
+      "additional_params": {
+        "tp_r": [
+          2.0,
+          3.0
+        ],
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "vol_max": [
+          0.6,
+          0.8
+        ],
+        "flow_threshold": [
+          1.0,
+          1.5
+        ],
+        "agg_threshold": [
+          0.6,
+          0.7
+        ]
+      },
+      "target_session": "ny",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "h1_trend_support_pullback_continuation",
+      "code": "def entry_h1_trend_support_pullback_continuation(bst, slot, row, ts, pair, slip, hspd,\n                                                  sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('fired_today'):\n        return False\n    \n    if row.hour < 14 or row.hour >= 21:\n        return False\n\n    close = getattr(row, 'close', float('nan'))\n    atr = getattr(row, 'atr', float('nan'))\n    h1_trend = getattr(row, 'h1_trend', float('nan'))\n    swing_low5 = getattr(row, 'swing_low5', float('nan'))\n    swing_high5 = getattr(row, 'swing_high5', float('nan'))\n    bar_momentum = getattr(row, 'bar_momentum', float('nan'))\n    swing_low_dist = getattr(row, 'swing_low_dist', float('nan'))\n    \n    if math.isnan(close) or math.isnan(atr) or atr <= 0 or math.isnan(h1_trend):\n        return False\n    \n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk = resolve_risk(bst, regime_mult, 'dynamic')\n    \n    # Long: H1 uptrend, pullback to recent low, bar turning positive\n    if h1_trend > 0:\n        if not math.isnan(swing_low_dist) and swing_low_dist < params['support_proximity']:\n            if not math.isnan(bar_momentum) and bar_momentum > 0:\n                size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n                sc['fired_today'] = True\n                place_pending(sc, ts, 'long',\n                              entry=close,\n                              sl=close - sl_dist,\n                              tp=close + tp_dist,\n                              size=size, dist=sl_dist,\n                              mode='market_next_open')\n    \n    # Short: H1 downtrend, pullback to recent high, bar turning negative\n    elif h1_trend < 0:\n        swing_high_dist = getattr(row, 'swing_high_dist', float('nan'))\n        if not math.isnan(swing_high_dist) and swing_high_dist < params['support_proximity']:\n            if not math.isnan(bar_momentum) and bar_momentum < 0:\n                size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n                sc['fired_today'] = True\n                place_pending(sc, ts, 'short',\n                              entry=close,\n                              sl=close + sl_dist,\n                              tp=close - tp_dist,\n                              size=size, dist=sl_dist,\n                              mode='market_next_open')\n    \n    return False",
+      "rationale": "Multi-timeframe pullback strategy. <cite index=\"5-7\">On trend days, the overlap between London close and NY open often provides micro pullbacks into M5 or M15 FVGs - ideal for continuation entries.</cite> Long only in H1 uptrend, short only in H1 downtrend. Enter on pullback to nearby support (swing_low5) with bar momentum turning positive.",
+      "behaviour_type": "trend_pullback_continuation",
+      "additional_params": {
+        "tp_r": [
+          1.5,
+          2.5
+        ],
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "support_proximity": [
+          0.5,
+          1.0
+        ]
+      },
+      "target_session": "ny",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "swing_high_low_sweep_volatility_reversal",
+      "code": "def entry_swing_high_low_sweep_volatility_reversal(bst, slot, row, ts, pair, slip, hspd,\n                                                    sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('fired_today'):\n        return False\n    \n    if row.hour < 15 or row.hour >= 21:\n        return False\n\n    close = getattr(row, 'close', float('nan'))\n    high = getattr(row, 'high', float('nan'))\n    low = getattr(row, 'low', float('nan'))\n    atr = getattr(row, 'atr', float('nan'))\n    bar_range_pct = getattr(row, 'bar_range_pct', float('nan'))\n    swing_high5 = getattr(row, 'swing_high5', float('nan'))\n    swing_low5 = getattr(row, 'swing_low5', float('nan'))\n    \n    if (math.isnan(close) or math.isnan(high) or math.isnan(low) or \n        math.isnan(atr) or atr <= 0 or math.isnan(bar_range_pct)):\n        return False\n    \n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk = resolve_risk(bst, regime_mult, 'dynamic')\n    \n    # Trigger: wide bar (expansion) that closes back inside recent 5-bar range\n    if bar_range_pct > params['expansion_threshold']:\n        # High wick sweep: short the reversal\n        if high > swing_high5 and close < swing_high5 - atr * 0.3:\n            size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n            sc['fired_today'] = True\n            place_pending(sc, ts, 'short',\n                          entry=close,\n                          sl=close + sl_dist,\n                          tp=close - tp_dist,\n                          size=size, dist=sl_dist,\n                          mode='market_next_open')\n        # Low wick sweep: long the reversal\n        elif low < swing_low5 and close > swing_low5 + atr * 0.3:\n            size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n            sc['fired_today'] = True\n            place_pending(sc, ts, 'long',\n                          entry=close,\n                          sl=close - sl_dist,\n                          tp=close + tp_dist,\n                          size=size, dist=sl_dist,\n                          mode='market_next_open')\n    \n    return False",
+      "rationale": "Volatility-regime stop hunt. <cite index=\"36-15\">If price sweeps above resistance and then closes back inside range with high volume, it's often a liquidity grab, not true breakout.</cite> Trade: when bar_range_pct > 1.2 AND bar closes back inside prior range \u2192 reverse. Short on high sweeps; long on low sweeps.",
+      "behaviour_type": "stop_run_reversal",
+      "additional_params": {
+        "tp_r": [
+          1.5,
+          2.0
+        ],
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "expansion_threshold": [
+          1.2,
+          1.5
+        ]
+      },
+      "target_session": "ny",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "nyso_ema_high_vol_breakout_confirmation",
+      "code": "def entry_nyso_ema_high_vol_breakout_confirmation(bst, slot, row, ts, pair, slip, hspd,\n                                                   sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('fired_today'):\n        return False\n    \n    # London-NY overlap window 14:00-16:00 UTC\n    if row.hour < 14 or row.hour >= 16:\n        return False\n\n    close = getattr(row, 'close', float('nan'))\n    atr = getattr(row, 'atr', float('nan'))\n    prev_high = getattr(row, 'prev_day_high', float('nan'))\n    prev_low = getattr(row, 'prev_day_low', float('nan'))\n    atr_rank = getattr(row, 'atr_rank', float('nan'))\n    rv_delta = getattr(row, 'rv_delta', float('nan'))\n    \n    if (math.isnan(close) or math.isnan(atr) or atr <= 0 or \n        math.isnan(prev_high) or math.isnan(prev_low)):\n        return False\n    \n    # Filter: only on expanding vol (ATR rank high, vol accelerating)\n    if not math.isnan(atr_rank) and atr_rank < params['vol_rank_threshold']:\n        return False\n    \n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk = resolve_risk(bst, regime_mult, 'dynamic')\n    \n    # Long: close above prev day high with high ATR\n    if close > prev_high:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'long',\n                      entry=close,\n                      sl=close - sl_dist,\n                      tp=close + tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n    # Short: close below prev day low with high ATR\n    elif close < prev_low:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'short',\n                      entry=close,\n                      sl=close + sl_dist,\n                      tp=close - tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n    \n    return False",
+      "rationale": "<cite index=\"1-9,1-10\">The New York session is characterized by high trading volume, especially during its overlap with the London session; this increased activity often leads to significant price movements.</cite> Trade breakout of prior day high/low on high ATR rank + vol expanding. Confirmation only during 14:00-16:00 UTC window (London close / NY open overlap).",
+      "behaviour_type": "breakout_continuation",
+      "additional_params": {
+        "tp_r": [
+          2.0,
+          3.0
+        ],
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "vol_rank_threshold": [
+          0.6,
+          0.7
+        ]
+      },
+      "target_session": "ny",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "bb_pct_extreme_mean_revert_low_yz",
+      "code": "def entry_bb_pct_extreme_mean_revert_low_yz(bst, slot, row, ts, pair, slip, hspd,\n                                             sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('fired_today'):\n        return False\n    \n    if row.hour < 15 or row.hour >= 21:\n        return False\n\n    close = getattr(row, 'close', float('nan'))\n    atr = getattr(row, 'atr', float('nan'))\n    bb_pct = getattr(row, 'bb_pct', float('nan'))\n    yz_ratio = getattr(row, 'yz_vol_ratio', float('nan'))\n    \n    if (math.isnan(close) or math.isnan(atr) or atr <= 0 or math.isnan(bb_pct)):\n        return False\n    \n    # Filter: only in compressed vol environment\n    if not math.isnan(yz_ratio) and yz_ratio > params['vol_max']:\n        return False\n    \n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk = resolve_risk(bst, regime_mult, 'dynamic')\n    \n    # Long: price at lower Bollinger Band extreme in low vol\n    if bb_pct < params['bb_lower']:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'long',\n                      entry=close,\n                      sl=close - sl_dist,\n                      tp=close + tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n    # Short: price at upper Bollinger Band extreme in low vol\n    elif bb_pct > params['bb_upper']:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'short',\n                      entry=close,\n                      sl=close + sl_dist,\n                      tp=close - tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n    \n    return False",
+      "rationale": "Bollinger Band extremes in compressed vol. Buy when bb_pct < 0.2 (lower band) in low yz_vol_ratio regime; sell when bb_pct > 0.8. Trade only during NY session low-vol windows (yz_vol_ratio < 0.8).",
+      "behaviour_type": "mean_reversion_low_volatility",
+      "additional_params": {
+        "tp_r": [
+          1.5,
+          2.5
+        ],
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "vol_max": [
+          0.7,
+          0.9
+        ],
+        "bb_lower": [
+          0.1,
+          0.2
+        ],
+        "bb_upper": [
+          0.8,
+          0.9
+        ]
+      },
+      "target_session": "ny",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "hmm_prob_regime_shift_reversal_detection",
+      "code": "def entry_hmm_prob_regime_shift_reversal_detection(bst, slot, row, ts, pair, slip, hspd,\n                                                    sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('fired_today'):\n        return False\n    \n    if row.hour < 14 or row.hour >= 21:\n        return False\n\n    close = getattr(row, 'close', float('nan'))\n    atr = getattr(row, 'atr', float('nan'))\n    hurst = getattr(row, 'hurst', float('nan'))\n    hmm_transition = getattr(row, 'hmm_transition', float('nan'))\n    hmm_prob_0 = getattr(row, 'hmm_prob_0', float('nan'))\n    hmm_prob_1 = getattr(row, 'hmm_prob_1', float('nan'))\n    hmm_prob_2 = getattr(row, 'hmm_prob_2', float('nan'))\n    hmm_prob_3 = getattr(row, 'hmm_prob_3', float('nan'))\n    momentum_3 = getattr(row, 'momentum_3', float('nan'))\n    \n    if (math.isnan(close) or math.isnan(atr) or atr <= 0 or \n        math.isnan(hurst) or math.isnan(hmm_transition)):\n        return False\n    \n    # Filter: trending regime only\n    if hurst < 0.50 or hurst > 0.60:\n        return False\n    \n    # Detect regime transition: max prob drops below threshold\n    max_prob = max(\n        getattr(row, 'hmm_prob_0', 0),\n        getattr(row, 'hmm_prob_1', 0),\n        getattr(row, 'hmm_prob_2', 0),\n        getattr(row, 'hmm_prob_3', 0)\n    )\n    if max_prob > params['hmm_conf_threshold']:\n        return False  # Confidence still too high, skip\n    \n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk = resolve_risk(bst, regime_mult, 'dynamic')\n    \n    # On regime transition + recent upside momentum \u2192 pullback long\n    if hmm_transition > 0 and not math.isnan(momentum_3) and momentum_3 > 0:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'long',\n                      entry=close,\n                      sl=close - sl_dist,\n                      tp=close + tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n    # On regime transition + recent downside momentum \u2192 pullback short\n    elif hmm_transition > 0 and not math.isnan(momentum_3) and momentum_3 < 0:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'short',\n                      entry=close,\n                      sl=close + sl_dist,\n                      tp=close - tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n    \n    return False",
+      "rationale": "HMM regime detection thesis. Trade probability shift: when hmm_prob (highest state) drops below 0.6 (regime confidence declining), AND hmm_transition bar, enter pullback in direction of prior regime. Filter: only trade within trend regimes (hurst > 0.50).",
+      "behaviour_type": "trend_pullback_continuation",
+      "additional_params": {
+        "tp_r": [
+          1.5,
+          2.0
+        ],
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "hmm_conf_threshold": [
+          0.55,
+          0.65
+        ]
+      },
+      "target_session": "ny",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "hawkes_intensity_cluster_flow_ignition",
+      "code": "def entry_hawkes_intensity_cluster_flow_ignition(bst, slot, row, ts, pair, slip, hspd,\n                                                  sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('fired_today'):\n        return False\n    \n    if row.hour < 14 or row.hour >= 21:\n        return False\n\n    close = getattr(row, 'close', float('nan'))\n    atr = getattr(row, 'atr', float('nan'))\n    hawkes = getattr(row, 'hawkes_intensity', float('nan'))\n    persistent_imb = getattr(row, 'persistent_imbalance', float('nan'))\n    \n    if (math.isnan(close) or math.isnan(atr) or atr <= 0 or \n        math.isnan(hawkes) or math.isnan(persistent_imb)):\n        return False\n    \n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk = resolve_risk(bst, regime_mult, 'dynamic')\n    \n    # Long: clustering intensity rising + buy flow dominates\n    if hawkes > params['hawkes_threshold'] and persistent_imb > params['flow_min']:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'long',\n                      entry=close,\n                      sl=close - sl_dist,\n                      tp=close + tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n    # Short: clustering intensity rising + sell flow dominates\n    elif hawkes > params['hawkes_threshold'] and persistent_imb < -params['flow_min']:\n        size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n        sc['fired_today'] = True\n        place_pending(sc, ts, 'short',\n                      entry=close,\n                      sl=close + sl_dist,\n                      tp=close - tp_dist,\n                      size=size, dist=sl_dist,\n                      mode='market_next_open')\n    \n    return False",
+      "rationale": "Self-exciting order flow clustering. <cite index=\"39-30,39-31\">A rising cumulative delta line indicates sustained aggressive buying; a declining cumulative delta suggests sellers continue to dominate.</cite> Trade: hawkes_intensity > 1.5 + persistent_imbalance sign matching flow direction = momentum ignition setup.",
+      "behaviour_type": "momentum_ignition_after_compression",
+      "additional_params": {
+        "tp_r": [
+          2.0,
+          2.5
+        ],
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "hawkes_threshold": [
+          1.5,
+          2.0
+        ],
+        "flow_min": [
+          0.8,
+          1.2
+        ]
+      },
+      "target_session": "ny",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    },
+    {
+      "function_name": "close_location_bar_body_expansion_reversal",
+      "code": "def entry_close_location_bar_body_expansion_reversal(bst, slot, row, ts, pair, slip, hspd,\n                                                      sess_cfg, regime, regime_mult, fvg_buf=None, day_sweep=None):\n    params = slot['strategy_def']['params']\n    sc     = slot['scratch']\n\n    if spread_gate(row):\n        return False\n    if has_pending(sc):\n        return check_and_fill(sc, row, slot, ts, regime, hspd, slip)\n    if sc.get('fired_today'):\n        return False\n    \n    if row.hour < 15 or row.hour >= 21:\n        return False\n\n    close = getattr(row, 'close', float('nan'))\n    atr = getattr(row, 'atr', float('nan'))\n    close_loc = getattr(row, 'close_location', float('nan'))\n    bar_range_pct = getattr(row, 'bar_range_pct', float('nan'))\n    bar_momentum = getattr(row, 'bar_momentum', float('nan'))\n    \n    if (math.isnan(close) or math.isnan(atr) or atr <= 0 or \n        math.isnan(close_loc) or math.isnan(bar_range_pct)):\n        return False\n    \n    sl_dist = atr * params['sl_r']\n    tp_dist = atr * params['tp_r']\n    risk = resolve_risk(bst, regime_mult, 'dynamic')\n    \n    # Wick trap: extreme close location but NO bar range expansion \u2192 fade it\n    # Bullish wick trap (close at top) but weak bar\n    if close_loc > params['close_loc_high'] and bar_range_pct < params['bar_range_max']:\n        if not math.isnan(bar_momentum) and bar_momentum < 0:\n            size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n            sc['fired_today'] = True\n            place_pending(sc, ts, 'short',\n                          entry=close,\n                          sl=close + sl_dist,\n                          tp=close - tp_dist,\n                          size=size, dist=sl_dist,\n                          mode='market_next_open')\n    # Bearish wick trap (close at bottom) but weak bar\n    elif close_loc < params['close_loc_low'] and bar_range_pct < params['bar_range_max']:\n        if not math.isnan(bar_momentum) and bar_momentum > 0:\n            size = rv_size(pair, bst.balance, risk, close, sl_dist, row)\n            sc['fired_today'] = True\n            place_pending(sc, ts, 'long',\n                          entry=close,\n                          sl=close - sl_dist,\n                          tp=close + tp_dist,\n                          size=size, dist=sl_dist,\n                          mode='market_next_open')\n    \n    return False",
+      "rationale": "Bar structure thesis: when bar has extreme close location (>0.85 or <0.15) BUT bar_range_pct is NOT elevated (no follow-through), price whipsaws back. Catch the reversal after the initial wick.",
+      "behaviour_type": "false_breakout_liquidity_grab",
+      "additional_params": {
+        "tp_r": [
+          1.5,
+          2.0
+        ],
+        "sl_r": [
+          1.0,
+          1.5
+        ],
+        "close_loc_high": [
+          0.8,
+          0.85
+        ],
+        "close_loc_low": [
+          0.15,
+          0.2
+        ],
+        "bar_range_max": [
+          0.9,
+          1.0
+        ]
+      },
+      "target_session": "ny",
+      "target_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ]
+    }
+  ]
+}

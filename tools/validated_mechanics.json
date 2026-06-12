@@ -1,0 +1,482 @@
+{
+  "generated_at": "2026-06-06T22:01:19.984994+00:00",
+  "train_window": [
+    "2024-05-03",
+    "2025-12-05"
+  ],
+  "pairs": [
+    "EUR_USD",
+    "GBP_USD"
+  ],
+  "config": {
+    "min_n_per_pair": 50,
+    "min_abs_t_stat": 2.0,
+    "min_abs_mean_atr": 0.2,
+    "n_windows": 6,
+    "min_passing_windows": 4,
+    "min_pairs_cross": 2,
+    "sessions": [
+      "asian",
+      "london",
+      "ny"
+    ],
+    "horizons": [
+      5,
+      15,
+      30,
+      60
+    ]
+  },
+  "n_tested": 1968,
+  "n_pre_cross": 78,
+  "mechanics": [
+    {
+      "mechanic": {
+        "mechanic_id": "disc_ny_ma_dist_lt_p25_h30_long",
+        "rationale": "Discovered mechanic for NY session (13-24 UTC). Trigger: when ma_dist < -3.934 (pooled train p25), price drifts long over the next 30 M1 bars. Statistical evidence on train data: n=133011, t=+15.08, mean_atr=+0.304. Cross-pair confirmed on pairs ['EUR_USD', 'GBP_USD']. Source: deterministic single-feature search, not LLM-proposed.",
+        "trigger": {
+          "feature": "ma_dist",
+          "comparison": "<",
+          "threshold": -3.934164492596966
+        },
+        "context_filters": [
+          {
+            "feature": "hour",
+            "comparison": ">=",
+            "threshold": 13
+          },
+          {
+            "feature": "hour",
+            "comparison": "<",
+            "threshold": 24
+          }
+        ],
+        "direction_hypothesis": "long",
+        "forward_horizon_bars": 30,
+        "pair_universe": [
+          "EUR_USD",
+          "GBP_USD"
+        ]
+      },
+      "validation_result": {
+        "n_events": 133011,
+        "t_stat": 15.089,
+        "mean_fwd_return": 0.3047,
+        "per_pair": {
+          "EUR_USD": {
+            "n": 67795,
+            "mean_fwd_atr": 0.3334,
+            "mean_fwd": 3.3e-05,
+            "t_stat": 15.709,
+            "reason": "ok"
+          },
+          "GBP_USD": {
+            "n": 65216,
+            "mean_fwd_atr": 0.2748,
+            "mean_fwd": 2.7e-05,
+            "t_stat": 14.444,
+            "reason": "ok"
+          }
+        }
+      },
+      "discovered_session": "ny",
+      "passing_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ],
+      "min_abs_t_stat": 14.444
+    },
+    {
+      "mechanic": {
+        "mechanic_id": "disc_ny_ma_dist_lt_p25_h60_long",
+        "rationale": "Discovered mechanic for NY session (13-24 UTC). Trigger: when ma_dist < -3.934 (pooled train p25), price drifts long over the next 60 M1 bars. Statistical evidence on train data: n=133011, t=+16.13, mean_atr=+0.439. Cross-pair confirmed on pairs ['EUR_USD', 'GBP_USD']. Source: deterministic single-feature search, not LLM-proposed.",
+        "trigger": {
+          "feature": "ma_dist",
+          "comparison": "<",
+          "threshold": -3.934164492596966
+        },
+        "context_filters": [
+          {
+            "feature": "hour",
+            "comparison": ">=",
+            "threshold": 13
+          },
+          {
+            "feature": "hour",
+            "comparison": "<",
+            "threshold": 24
+          }
+        ],
+        "direction_hypothesis": "long",
+        "forward_horizon_bars": 60,
+        "pair_universe": [
+          "EUR_USD",
+          "GBP_USD"
+        ]
+      },
+      "validation_result": {
+        "n_events": 133011,
+        "t_stat": 16.169,
+        "mean_fwd_return": 0.4406,
+        "per_pair": {
+          "EUR_USD": {
+            "n": 67795,
+            "mean_fwd_atr": 0.5151,
+            "mean_fwd": 5.9e-05,
+            "t_stat": 17.979,
+            "reason": "ok"
+          },
+          "GBP_USD": {
+            "n": 65216,
+            "mean_fwd_atr": 0.3632,
+            "mean_fwd": 3.9e-05,
+            "t_stat": 14.287,
+            "reason": "ok"
+          }
+        }
+      },
+      "discovered_session": "ny",
+      "passing_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ],
+      "min_abs_t_stat": 14.287
+    },
+    {
+      "mechanic": {
+        "mechanic_id": "disc_ny_hurst_gt_p75_h60_long",
+        "rationale": "Discovered mechanic for NY session (13-24 UTC). Trigger: when hurst > 0.6223 (pooled train p75), price drifts long over the next 60 M1 bars. Statistical evidence on train data: n=134076, t=+12.91, mean_atr=+0.358. Cross-pair confirmed on pairs ['EUR_USD', 'GBP_USD']. Source: deterministic single-feature search, not LLM-proposed.",
+        "trigger": {
+          "feature": "hurst",
+          "comparison": ">",
+          "threshold": 0.6222970595366288
+        },
+        "context_filters": [
+          {
+            "feature": "hour",
+            "comparison": ">=",
+            "threshold": 13
+          },
+          {
+            "feature": "hour",
+            "comparison": "<",
+            "threshold": 24
+          }
+        ],
+        "direction_hypothesis": "long",
+        "forward_horizon_bars": 60,
+        "pair_universe": [
+          "EUR_USD",
+          "GBP_USD"
+        ]
+      },
+      "validation_result": {
+        "n_events": 134076,
+        "t_stat": 12.986,
+        "mean_fwd_return": 0.3606,
+        "per_pair": {
+          "EUR_USD": {
+            "n": 69207,
+            "mean_fwd_atr": 0.4501,
+            "mean_fwd": 3.3e-05,
+            "t_stat": 15.232,
+            "reason": "ok"
+          },
+          "GBP_USD": {
+            "n": 64869,
+            "mean_fwd_atr": 0.2651,
+            "mean_fwd": 3e-05,
+            "t_stat": 10.589,
+            "reason": "ok"
+          }
+        }
+      },
+      "discovered_session": "ny",
+      "passing_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ],
+      "min_abs_t_stat": 10.589
+    },
+    {
+      "mechanic": {
+        "mechanic_id": "disc_london_ma_dist_gt_p90_h30_short",
+        "rationale": "Discovered mechanic for LONDON session (08-13 UTC). Trigger: when ma_dist > 7.999 (pooled train p90), price drifts short over the next 30 M1 bars. Statistical evidence on train data: n=22011, t=-9.84, mean_atr=-0.387. Cross-pair confirmed on pairs ['EUR_USD', 'GBP_USD']. Source: deterministic single-feature search, not LLM-proposed.",
+        "trigger": {
+          "feature": "ma_dist",
+          "comparison": ">",
+          "threshold": 7.9989917921745315
+        },
+        "context_filters": [
+          {
+            "feature": "hour",
+            "comparison": ">=",
+            "threshold": 8
+          },
+          {
+            "feature": "hour",
+            "comparison": "<",
+            "threshold": 13
+          }
+        ],
+        "direction_hypothesis": "short",
+        "forward_horizon_bars": 30,
+        "pair_universe": [
+          "EUR_USD",
+          "GBP_USD"
+        ]
+      },
+      "validation_result": {
+        "n_events": 22011,
+        "t_stat": -9.87,
+        "mean_fwd_return": -0.3872,
+        "per_pair": {
+          "EUR_USD": {
+            "n": 10507,
+            "mean_fwd_atr": -0.3821,
+            "mean_fwd": -5e-05,
+            "t_stat": -9.253,
+            "reason": "ok"
+          },
+          "GBP_USD": {
+            "n": 11504,
+            "mean_fwd_atr": -0.3919,
+            "mean_fwd": -7.3e-05,
+            "t_stat": -10.434,
+            "reason": "ok"
+          }
+        }
+      },
+      "discovered_session": "london",
+      "passing_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ],
+      "min_abs_t_stat": 9.253
+    },
+    {
+      "mechanic": {
+        "mechanic_id": "disc_london_ma_dist_gt_p90_h15_short",
+        "rationale": "Discovered mechanic for LONDON session (08-13 UTC). Trigger: when ma_dist > 7.999 (pooled train p90), price drifts short over the next 15 M1 bars. Statistical evidence on train data: n=22011, t=-8.51, mean_atr=-0.247. Cross-pair confirmed on pairs ['EUR_USD', 'GBP_USD']. Source: deterministic single-feature search, not LLM-proposed.",
+        "trigger": {
+          "feature": "ma_dist",
+          "comparison": ">",
+          "threshold": 7.9989917921745315
+        },
+        "context_filters": [
+          {
+            "feature": "hour",
+            "comparison": ">=",
+            "threshold": 8
+          },
+          {
+            "feature": "hour",
+            "comparison": "<",
+            "threshold": 13
+          }
+        ],
+        "direction_hypothesis": "short",
+        "forward_horizon_bars": 15,
+        "pair_universe": [
+          "EUR_USD",
+          "GBP_USD"
+        ]
+      },
+      "validation_result": {
+        "n_events": 22011,
+        "t_stat": -8.498,
+        "mean_fwd_return": -0.2456,
+        "per_pair": {
+          "EUR_USD": {
+            "n": 10507,
+            "mean_fwd_atr": -0.2713,
+            "mean_fwd": -3.7e-05,
+            "t_stat": -8.755,
+            "reason": "ok"
+          },
+          "GBP_USD": {
+            "n": 11504,
+            "mean_fwd_atr": -0.2221,
+            "mean_fwd": -4.3e-05,
+            "t_stat": -8.264,
+            "reason": "ok"
+          }
+        }
+      },
+      "discovered_session": "london",
+      "passing_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ],
+      "min_abs_t_stat": 8.264
+    },
+    {
+      "mechanic": {
+        "mechanic_id": "disc_ny_ma_dist_lt_p10_h30_long",
+        "rationale": "Discovered mechanic for NY session (13-24 UTC). Trigger: when ma_dist < -7.634 (pooled train p10), price drifts long over the next 30 M1 bars. Statistical evidence on train data: n=56489, t=+11.71, mean_atr=+0.387. Cross-pair confirmed on pairs ['EUR_USD', 'GBP_USD']. Source: deterministic single-feature search, not LLM-proposed.",
+        "trigger": {
+          "feature": "ma_dist",
+          "comparison": "<",
+          "threshold": -7.633789437099693
+        },
+        "context_filters": [
+          {
+            "feature": "hour",
+            "comparison": ">=",
+            "threshold": 13
+          },
+          {
+            "feature": "hour",
+            "comparison": "<",
+            "threshold": 24
+          }
+        ],
+        "direction_hypothesis": "long",
+        "forward_horizon_bars": 30,
+        "pair_universe": [
+          "EUR_USD",
+          "GBP_USD"
+        ]
+      },
+      "validation_result": {
+        "n_events": 56489,
+        "t_stat": 11.738,
+        "mean_fwd_return": 0.3877,
+        "per_pair": {
+          "EUR_USD": {
+            "n": 28497,
+            "mean_fwd_atr": 0.5123,
+            "mean_fwd": 6.1e-05,
+            "t_stat": 15.155,
+            "reason": "ok"
+          },
+          "GBP_USD": {
+            "n": 27992,
+            "mean_fwd_atr": 0.2608,
+            "mean_fwd": 2.6e-05,
+            "t_stat": 8.26,
+            "reason": "ok"
+          }
+        }
+      },
+      "discovered_session": "ny",
+      "passing_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ],
+      "min_abs_t_stat": 8.26
+    },
+    {
+      "mechanic": {
+        "mechanic_id": "disc_ny_hurst_gt_p90_h60_long",
+        "rationale": "Discovered mechanic for NY session (13-24 UTC). Trigger: when hurst > 0.6602 (pooled train p90), price drifts long over the next 60 M1 bars. Statistical evidence on train data: n=53405, t=+10.04, mean_atr=+0.442. Cross-pair confirmed on pairs ['EUR_USD', 'GBP_USD']. Source: deterministic single-feature search, not LLM-proposed.",
+        "trigger": {
+          "feature": "hurst",
+          "comparison": ">",
+          "threshold": 0.6602003664267158
+        },
+        "context_filters": [
+          {
+            "feature": "hour",
+            "comparison": ">=",
+            "threshold": 13
+          },
+          {
+            "feature": "hour",
+            "comparison": "<",
+            "threshold": 24
+          }
+        ],
+        "direction_hypothesis": "long",
+        "forward_horizon_bars": 60,
+        "pair_universe": [
+          "EUR_USD",
+          "GBP_USD"
+        ]
+      },
+      "validation_result": {
+        "n_events": 53405,
+        "t_stat": 10.139,
+        "mean_fwd_return": 0.4481,
+        "per_pair": {
+          "EUR_USD": {
+            "n": 27927,
+            "mean_fwd_atr": 0.5782,
+            "mean_fwd": 4.5e-05,
+            "t_stat": 12.184,
+            "reason": "ok"
+          },
+          "GBP_USD": {
+            "n": 25478,
+            "mean_fwd_atr": 0.3054,
+            "mean_fwd": 4e-05,
+            "t_stat": 7.897,
+            "reason": "ok"
+          }
+        }
+      },
+      "discovered_session": "ny",
+      "passing_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ],
+      "min_abs_t_stat": 7.897
+    },
+    {
+      "mechanic": {
+        "mechanic_id": "disc_ny_ma_dist_lt_p10_h60_long",
+        "rationale": "Discovered mechanic for NY session (13-24 UTC). Trigger: when ma_dist < -7.634 (pooled train p10), price drifts long over the next 60 M1 bars. Statistical evidence on train data: n=56489, t=+10.32, mean_atr=+0.464. Cross-pair confirmed on pairs ['EUR_USD', 'GBP_USD']. Source: deterministic single-feature search, not LLM-proposed.",
+        "trigger": {
+          "feature": "ma_dist",
+          "comparison": "<",
+          "threshold": -7.633789437099693
+        },
+        "context_filters": [
+          {
+            "feature": "hour",
+            "comparison": ">=",
+            "threshold": 13
+          },
+          {
+            "feature": "hour",
+            "comparison": "<",
+            "threshold": 24
+          }
+        ],
+        "direction_hypothesis": "long",
+        "forward_horizon_bars": 60,
+        "pair_universe": [
+          "EUR_USD",
+          "GBP_USD"
+        ]
+      },
+      "validation_result": {
+        "n_events": 56489,
+        "t_stat": 10.365,
+        "mean_fwd_return": 0.4661,
+        "per_pair": {
+          "EUR_USD": {
+            "n": 28497,
+            "mean_fwd_atr": 0.7089,
+            "mean_fwd": 9.7e-05,
+            "t_stat": 15.289,
+            "reason": "ok"
+          },
+          "GBP_USD": {
+            "n": 27992,
+            "mean_fwd_atr": 0.219,
+            "mean_fwd": 2.6e-05,
+            "t_stat": 5.353,
+            "reason": "ok"
+          }
+        }
+      },
+      "discovered_session": "ny",
+      "passing_pairs": [
+        "EUR_USD",
+        "GBP_USD"
+      ],
+      "min_abs_t_stat": 5.353
+    }
+  ]
+}

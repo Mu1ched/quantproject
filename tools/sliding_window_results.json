@@ -1,0 +1,28 @@
+{
+  "args": {
+    "sessions": "ny",
+    "n_windows": 1,
+    "train_days": 120,
+    "test_days": 30,
+    "step_days": 30,
+    "report": "C:\\Users\\malac\\Downloads\\Quantproject\\tools\\sliding_window_report.md",
+    "json": "C:\\Users\\malac\\Downloads\\Quantproject\\tools\\sliding_window_results.json"
+  },
+  "n_runs": 1,
+  "n_passing_adversarial": 0,
+  "runs": [
+    {
+      "window": "2024-05-03",
+      "test_start": "2024-08-31",
+      "test_end": "2024-09-30",
+      "session": "ny",
+      "adversarial_auc": 0.9318,
+      "adversarial_verdict": "ABORT",
+      "n_patterns": 0,
+      "top_features": [],
+      "elapsed_s": 17.2
+    }
+  ],
+  "recurring_features": [],
+  "elapsed_min": 0.51
+}

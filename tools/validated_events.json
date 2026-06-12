@@ -1,0 +1,654 @@
+{
+  "validated": [],
+  "n_validated": 0,
+  "n_event_types_tested": 7,
+  "n_pairs_tested": 5,
+  "n_dropped_rare": 2,
+  "config": {
+    "horizons": [
+      5,
+      15,
+      30,
+      60
+    ],
+    "n_windows": 6,
+    "min_events_per_window": 20,
+    "min_passing_windows": 4,
+    "min_window_t_stat": 1.5,
+    "min_events_total": 100,
+    "min_pairs_for_cross": 2
+  },
+  "failed_summary": [
+    {
+      "event_type": "first_m15_sweep_of_prior_session",
+      "pair": "AUD_USD",
+      "horizon": 15,
+      "reason": "stability_fail",
+      "t_vs_baseline": 0.76,
+      "window_signs": [
+        -1,
+        1,
+        1,
+        1,
+        1,
+        -1
+      ]
+    },
+    {
+      "event_type": "first_m15_sweep_of_prior_session",
+      "pair": "AUD_USD",
+      "horizon": 30,
+      "reason": "stability_fail",
+      "t_vs_baseline": 1.302,
+      "window_signs": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        -1
+      ]
+    },
+    {
+      "event_type": "first_m15_sweep_of_prior_session",
+      "pair": "EUR_JPY",
+      "horizon": 5,
+      "reason": "stability_fail",
+      "t_vs_baseline": 0.608,
+      "window_signs": [
+        1,
+        1,
+        -1,
+        -1,
+        1,
+        -1
+      ]
+    },
+    {
+      "event_type": "first_m15_sweep_of_prior_session",
+      "pair": "EUR_JPY",
+      "horizon": 15,
+      "reason": "stability_fail",
+      "t_vs_baseline": 0.283,
+      "window_signs": [
+        1,
+        -1,
+        -1,
+        -1,
+        1,
+        1
+      ]
+    },
+    {
+      "event_type": "first_m15_sweep_of_prior_session",
+      "pair": "EUR_JPY",
+      "horizon": 30,
+      "reason": "stability_fail",
+      "t_vs_baseline": 0.067,
+      "window_signs": [
+        1,
+        -1,
+        -1,
+        -1,
+        1,
+        1
+      ]
+    },
+    {
+      "event_type": "first_m15_sweep_of_prior_session",
+      "pair": "EUR_JPY",
+      "horizon": 60,
+      "reason": "stability_fail",
+      "t_vs_baseline": -0.176,
+      "window_signs": [
+        1,
+        -1,
+        1,
+        1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "event_type": "first_m15_sweep_of_prior_session",
+      "pair": "EUR_USD",
+      "horizon": 5,
+      "reason": "stability_fail",
+      "t_vs_baseline": 0.448,
+      "window_signs": [
+        1,
+        1,
+        -1,
+        1,
+        -1,
+        1
+      ]
+    },
+    {
+      "event_type": "first_m15_sweep_of_prior_session",
+      "pair": "EUR_USD",
+      "horizon": 15,
+      "reason": "stability_fail",
+      "t_vs_baseline": 0.871,
+      "window_signs": [
+        -1,
+        1,
+        1,
+        1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "event_type": "first_m15_sweep_of_prior_session",
+      "pair": "EUR_USD",
+      "horizon": 30,
+      "reason": "stability_fail",
+      "t_vs_baseline": 0.143,
+      "window_signs": [
+        -1,
+        1,
+        1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "event_type": "first_m15_sweep_of_prior_session",
+      "pair": "EUR_USD",
+      "horizon": 60,
+      "reason": "stability_fail",
+      "t_vs_baseline": -0.201,
+      "window_signs": [
+        1,
+        -1,
+        1,
+        -1,
+        -1,
+        1
+      ]
+    },
+    {
+      "event_type": "first_m15_sweep_of_prior_session",
+      "pair": "GBP_USD",
+      "horizon": 15,
+      "reason": "stability_fail",
+      "t_vs_baseline": -0.895,
+      "window_signs": [
+        -1,
+        1,
+        1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "event_type": "first_m15_sweep_of_prior_session",
+      "pair": "GBP_USD",
+      "horizon": 30,
+      "reason": "stability_fail",
+      "t_vs_baseline": -0.286,
+      "window_signs": [
+        1,
+        1,
+        1,
+        1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "event_type": "first_m15_sweep_of_prior_session",
+      "pair": "GBP_USD",
+      "horizon": 60,
+      "reason": "stability_fail",
+      "t_vs_baseline": -0.108,
+      "window_signs": [
+        1,
+        -1,
+        1,
+        -1,
+        -1,
+        1
+      ]
+    },
+    {
+      "event_type": "first_m15_sweep_of_prior_session",
+      "pair": "USD_JPY",
+      "horizon": 5,
+      "reason": "stability_fail",
+      "t_vs_baseline": 0.194,
+      "window_signs": [
+        1,
+        1,
+        -1,
+        -1,
+        1,
+        -1
+      ]
+    },
+    {
+      "event_type": "first_m15_sweep_of_prior_session",
+      "pair": "USD_JPY",
+      "horizon": 15,
+      "reason": "stability_fail",
+      "t_vs_baseline": 0.124,
+      "window_signs": [
+        1,
+        -1,
+        -1,
+        -1,
+        -1,
+        1
+      ]
+    },
+    {
+      "event_type": "first_m15_sweep_of_prior_session",
+      "pair": "USD_JPY",
+      "horizon": 30,
+      "reason": "stability_fail",
+      "t_vs_baseline": 0.25,
+      "window_signs": [
+        1,
+        -1,
+        -1,
+        1,
+        -1,
+        1
+      ]
+    },
+    {
+      "event_type": "first_m15_sweep_of_prior_session",
+      "pair": "USD_JPY",
+      "horizon": 60,
+      "reason": "stability_fail",
+      "t_vs_baseline": 0.513,
+      "window_signs": [
+        1,
+        1,
+        -1,
+        1,
+        -1,
+        1
+      ]
+    },
+    {
+      "event_type": "gap_open",
+      "pair": "AUD_USD",
+      "horizon": 5,
+      "reason": "stability_fail",
+      "t_vs_baseline": 0.803,
+      "window_signs": [
+        0,
+        0,
+        1,
+        -1,
+        1,
+        1
+      ]
+    },
+    {
+      "event_type": "gap_open",
+      "pair": "AUD_USD",
+      "horizon": 15,
+      "reason": "stability_fail",
+      "t_vs_baseline": 0.654,
+      "window_signs": [
+        0,
+        0,
+        1,
+        -1,
+        1,
+        1
+      ]
+    },
+    {
+      "event_type": "gap_open",
+      "pair": "AUD_USD",
+      "horizon": 30,
+      "reason": "stability_fail",
+      "t_vs_baseline": 0.848,
+      "window_signs": [
+        0,
+        0,
+        1,
+        -1,
+        -1,
+        1
+      ]
+    },
+    {
+      "event_type": "gap_open",
+      "pair": "AUD_USD",
+      "horizon": 60,
+      "reason": "stability_fail",
+      "t_vs_baseline": 2.022,
+      "window_signs": [
+        0,
+        0,
+        1,
+        -1,
+        -1,
+        1
+      ]
+    },
+    {
+      "event_type": "gap_open",
+      "pair": "EUR_JPY",
+      "horizon": 5,
+      "reason": "not enough windows with data",
+      "t_vs_baseline": -0.128,
+      "window_signs": [
+        0,
+        0,
+        1,
+        1,
+        0,
+        -1
+      ]
+    },
+    {
+      "event_type": "gap_open",
+      "pair": "EUR_JPY",
+      "horizon": 15,
+      "reason": "not enough windows with data",
+      "t_vs_baseline": 0.472,
+      "window_signs": [
+        0,
+        0,
+        -1,
+        1,
+        0,
+        -1
+      ]
+    },
+    {
+      "event_type": "gap_open",
+      "pair": "EUR_JPY",
+      "horizon": 30,
+      "reason": "not enough windows with data",
+      "t_vs_baseline": 0.257,
+      "window_signs": [
+        0,
+        0,
+        1,
+        -1,
+        0,
+        1
+      ]
+    },
+    {
+      "event_type": "gap_open",
+      "pair": "EUR_JPY",
+      "horizon": 60,
+      "reason": "not enough windows with data",
+      "t_vs_baseline": 1.883,
+      "window_signs": [
+        0,
+        0,
+        1,
+        1,
+        0,
+        1
+      ]
+    },
+    {
+      "event_type": "gap_open",
+      "pair": "EUR_USD",
+      "horizon": 5,
+      "reason": "too few events (116) for 6 windows of 20",
+      "t_vs_baseline": -0.995,
+      "window_signs": null
+    },
+    {
+      "event_type": "gap_open",
+      "pair": "EUR_USD",
+      "horizon": 15,
+      "reason": "too few events (116) for 6 windows of 20",
+      "t_vs_baseline": -0.05,
+      "window_signs": null
+    },
+    {
+      "event_type": "gap_open",
+      "pair": "EUR_USD",
+      "horizon": 30,
+      "reason": "too few events (116) for 6 windows of 20",
+      "t_vs_baseline": 0.281,
+      "window_signs": null
+    },
+    {
+      "event_type": "gap_open",
+      "pair": "EUR_USD",
+      "horizon": 60,
+      "reason": "too few events (116) for 6 windows of 20",
+      "t_vs_baseline": 0.691,
+      "window_signs": null
+    },
+    {
+      "event_type": "gap_open",
+      "pair": "GBP_USD",
+      "horizon": 5,
+      "reason": "not enough windows with data",
+      "t_vs_baseline": 0.968,
+      "window_signs": [
+        0,
+        1,
+        1,
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "event_type": "gap_open",
+      "pair": "GBP_USD",
+      "horizon": 15,
+      "reason": "not enough windows with data",
+      "t_vs_baseline": -0.21,
+      "window_signs": [
+        0,
+        1,
+        1,
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "event_type": "gap_open",
+      "pair": "GBP_USD",
+      "horizon": 30,
+      "reason": "not enough windows with data",
+      "t_vs_baseline": -0.31,
+      "window_signs": [
+        0,
+        1,
+        1,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "event_type": "gap_open",
+      "pair": "GBP_USD",
+      "horizon": 60,
+      "reason": "not enough windows with data",
+      "t_vs_baseline": 0.583,
+      "window_signs": [
+        0,
+        -1,
+        1,
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "event_type": "gap_open",
+      "pair": "USD_JPY",
+      "horizon": 5,
+      "reason": "stability_fail",
+      "t_vs_baseline": -0.604,
+      "window_signs": [
+        -1,
+        0,
+        -1,
+        -1,
+        0,
+        1
+      ]
+    },
+    {
+      "event_type": "gap_open",
+      "pair": "USD_JPY",
+      "horizon": 15,
+      "reason": "stability_fail",
+      "t_vs_baseline": 0.203,
+      "window_signs": [
+        1,
+        0,
+        -1,
+        -1,
+        0,
+        -1
+      ]
+    },
+    {
+      "event_type": "gap_open",
+      "pair": "USD_JPY",
+      "horizon": 30,
+      "reason": "stability_fail",
+      "t_vs_baseline": 0.681,
+      "window_signs": [
+        1,
+        0,
+        -1,
+        -1,
+        0,
+        1
+      ]
+    },
+    {
+      "event_type": "gap_open",
+      "pair": "USD_JPY",
+      "horizon": 60,
+      "reason": "stability_fail",
+      "t_vs_baseline": 2.27,
+      "window_signs": [
+        -1,
+        0,
+        1,
+        1,
+        0,
+        1
+      ]
+    },
+    {
+      "event_type": "month_end_london_close",
+      "pair": "AUD_USD",
+      "horizon": 5,
+      "reason": "too few events (47) for 6 windows of 20",
+      "t_vs_baseline": -1.703,
+      "window_signs": null
+    },
+    {
+      "event_type": "month_end_london_close",
+      "pair": "AUD_USD",
+      "horizon": 15,
+      "reason": "too few events (47) for 6 windows of 20",
+      "t_vs_baseline": 1.199,
+      "window_signs": null
+    },
+    {
+      "event_type": "month_end_london_close",
+      "pair": "AUD_USD",
+      "horizon": 30,
+      "reason": "too few events (47) for 6 windows of 20",
+      "t_vs_baseline": 0.291,
+      "window_signs": null
+    },
+    {
+      "event_type": "month_end_london_close",
+      "pair": "AUD_USD",
+      "horizon": 60,
+      "reason": "too few events (47) for 6 windows of 20",
+      "t_vs_baseline": 1.691,
+      "window_signs": null
+    },
+    {
+      "event_type": "month_end_london_close",
+      "pair": "EUR_JPY",
+      "horizon": 5,
+      "reason": "too few events (47) for 6 windows of 20",
+      "t_vs_baseline": -0.681,
+      "window_signs": null
+    },
+    {
+      "event_type": "month_end_london_close",
+      "pair": "EUR_JPY",
+      "horizon": 15,
+      "reason": "too few events (47) for 6 windows of 20",
+      "t_vs_baseline": -0.65,
+      "window_signs": null
+    },
+    {
+      "event_type": "month_end_london_close",
+      "pair": "EUR_JPY",
+      "horizon": 30,
+      "reason": "too few events (47) for 6 windows of 20",
+      "t_vs_baseline": -0.354,
+      "window_signs": null
+    },
+    {
+      "event_type": "month_end_london_close",
+      "pair": "EUR_JPY",
+      "horizon": 60,
+      "reason": "too few events (47) for 6 windows of 20",
+      "t_vs_baseline": -0.636,
+      "window_signs": null
+    },
+    {
+      "event_type": "month_end_london_close",
+      "pair": "EUR_USD",
+      "horizon": 5,
+      "reason": "too few events (48) for 6 windows of 20",
+      "t_vs_baseline": -2.115,
+      "window_signs": null
+    },
+    {
+      "event_type": "month_end_london_close",
+      "pair": "EUR_USD",
+      "horizon": 15,
+      "reason": "too few events (48) for 6 windows of 20",
+      "t_vs_baseline": -0.239,
+      "window_signs": null
+    },
+    {
+      "event_type": "month_end_london_close",
+      "pair": "EUR_USD",
+      "horizon": 30,
+      "reason": "too few events (48) for 6 windows of 20",
+      "t_vs_baseline": -0.715,
+      "window_signs": null
+    },
+    {
+      "event_type": "month_end_london_close",
+      "pair": "EUR_USD",
+      "horizon": 60,
+      "reason": "too few events (48) for 6 windows of 20",
+      "t_vs_baseline": 0.303,
+      "window_signs": null
+    },
+    {
+      "event_type": "month_end_london_close",
+      "pair": "GBP_USD",
+      "horizon": 5,
+      "reason": "too few events (50) for 6 windows of 20",
+      "t_vs_baseline": -2.554,
+      "window_signs": null
+    }
+  ]
+}

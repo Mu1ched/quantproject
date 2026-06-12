@@ -1,0 +1,105 @@
+{
+  "ny_pairs": [
+    "EUR_USD",
+    "USD_JPY"
+  ],
+  "null_sweep_id": "null_ny_diag_20260602_104839",
+  "null_test_sharpe": {
+    "n": 200,
+    "mean": -0.967,
+    "median": -0.94,
+    "std": 1.092,
+    "min": -4.09,
+    "p25": -1.709,
+    "p75": -0.188,
+    "max": 1.878,
+    "frac_pos": 0.195
+  },
+  "null_train_sharpe": {
+    "n": 200,
+    "mean": -0.254,
+    "median": -0.24,
+    "std": 0.691,
+    "min": -3.101,
+    "p25": -0.659,
+    "p75": 0.212,
+    "max": 1.118,
+    "frac_pos": 0.39
+  },
+  "null_trades": {
+    "mean_train_trades": 349.7,
+    "mean_test_trades": 109.5
+  },
+  "cost_sensitivity": [
+    {
+      "n": 8,
+      "mean": 0.483,
+      "median": 0.54,
+      "std": 0.274,
+      "min": 0.082,
+      "p25": 0.364,
+      "p75": 0.66,
+      "max": 0.77,
+      "frac_pos": 1.0,
+      "cost_mult": 0.0,
+      "sweep_id": "cost_sens_orb_ny_cm0_20260602_115143",
+      "mean_test_trades": 152.0
+    },
+    {
+      "n": 8,
+      "mean": 0.263,
+      "median": 0.338,
+      "std": 0.278,
+      "min": -0.16,
+      "p25": 0.171,
+      "p75": 0.43,
+      "max": 0.537,
+      "frac_pos": 0.75,
+      "cost_mult": 0.25,
+      "sweep_id": "cost_sens_orb_ny_cm0.25_20260602_115355",
+      "mean_test_trades": 152.0
+    },
+    {
+      "n": 8,
+      "mean": 0.124,
+      "median": 0.205,
+      "std": 0.276,
+      "min": -0.297,
+      "p25": 0.033,
+      "p75": 0.296,
+      "max": 0.385,
+      "frac_pos": 0.75,
+      "cost_mult": 0.5,
+      "sweep_id": "cost_sens_orb_ny_cm0.5_20260602_115546",
+      "mean_test_trades": 152.0
+    },
+    {
+      "n": 8,
+      "mean": -0.26,
+      "median": -0.164,
+      "std": 0.299,
+      "min": -0.721,
+      "p25": -0.351,
+      "p75": -0.073,
+      "max": 0.011,
+      "frac_pos": 0.25,
+      "cost_mult": 1.0,
+      "sweep_id": "cost_sens_orb_ny_cm1_20260602_115742",
+      "mean_test_trades": 152.0
+    },
+    {
+      "n": 8,
+      "mean": -0.427,
+      "median": -0.334,
+      "std": 0.308,
+      "min": -0.901,
+      "p25": -0.519,
+      "p75": -0.242,
+      "max": -0.138,
+      "frac_pos": 0.0,
+      "cost_mult": 1.5,
+      "sweep_id": "cost_sens_orb_ny_cm1.5_20260602_115941",
+      "mean_test_trades": 152.0
+    }
+  ]
+}

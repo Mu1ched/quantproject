@@ -1,0 +1,57 @@
+{
+  "ny_pairs": [
+    "EUR_USD",
+    "USD_JPY"
+  ],
+  "engine": {
+    "SLIP_RATIO_STATIC": 0.1,
+    "NEWS_SLIPPAGE_MULT": 2.0
+  },
+  "args": {
+    "mode": "dynamic",
+    "seeds": 30,
+    "cost_mult": 0.5,
+    "workers": 2,
+    "report": "C:\\Users\\malac\\Downloads\\Quantproject\\tools\\diagnostics_after_fix.md"
+  },
+  "summaries": [
+    {
+      "mode": "dynamic",
+      "use_dynamic_spread": true,
+      "default_cost_mult": 0.5,
+      "null_sweep_id": "null_ny_after_dynamic_20260605_151229",
+      "null_test_sharpe": {
+        "n": 30,
+        "mean": -0.367,
+        "median": -0.665,
+        "std": 1.079,
+        "min": -2.776,
+        "p25": -0.961,
+        "p75": 0.262,
+        "max": 2.707,
+        "frac_pos": 0.3
+      },
+      "null_mean_trades": 106.6,
+      "orb_dynamic": {
+        "n": 8,
+        "mean": -0.035,
+        "median": 0.059,
+        "std": 0.353,
+        "min": -0.576,
+        "p25": -0.114,
+        "p75": 0.139,
+        "max": 0.318,
+        "frac_pos": 0.75,
+        "sweep_id": "orb_ny_after_dynamic_20260605_152101"
+      }
+    }
+  ],
+  "baseline_static": {
+    "null_mean": -0.967,
+    "null_frac_pos": 0.195,
+    "null_trades": 109.5,
+    "orb_at_cm05": 0.124,
+    "orb_at_cm10": -0.26,
+    "orb_at_cm00": 0.483
+  }
+}

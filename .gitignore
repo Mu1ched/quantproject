@@ -1,0 +1,51 @@
+# Secrets — never commit
+.env
+*.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Data caches and result databases (regenerable, multi-GB)
+duka_cache/
+edge_prepared_cache/
+*.parquet
+*.db
+*.db-journal
+
+# Runtime artifacts and logs
+rounds/
+runtime/
+*.log
+execution_quality.csv
+live_fx_real.csv
+live_fx_trades.csv
+
+# Backups
+*.bak
+*.bak_*
+*.pre_fix.*
+
+# Auto-generated agent strategies
+agent/generated/
+
+# Internal scratch / planning docs (kept local)
+fix_prompt*.md
+FIX_REPORT.md
+CRYPTO_PLAN.md
+P2_P3_plan.md
+INDICES_PIVOT_PLAN.md
+review_findings.md
+review_prompt.md
+quantproject_bundle.txt
+quantproject_summary.txt
+bundle.py
+
+# IDE
+.vscode/
+.idea/

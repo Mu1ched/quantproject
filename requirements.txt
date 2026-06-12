@@ -1,0 +1,30 @@
+# Core data / numerical
+pandas>=2.0.0
+numpy>=1.24.0
+scipy>=1.10.0
+
+# Machine learning (edge miner)
+lightgbm>=4.0.0
+shap>=0.42.0
+scikit-learn>=1.3.0
+
+# Visualisation
+matplotlib>=3.7.0
+
+# Dashboard
+streamlit>=1.30.0
+
+# Trading terminal (Windows only)
+MetaTrader5>=5.0.45
+
+# AI integration
+anthropic>=0.25.0
+
+# HTTP / APIs
+requests>=2.31.0
+
+# Environment / config
+python-dotenv>=1.0.0
+
+# Time zones
+pytz>=2023.3

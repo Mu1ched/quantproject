@@ -1,0 +1,578 @@
+{
+  "elapsed_min": 30.37,
+  "n_files": 113,
+  "ok": [],
+  "skipped": [],
+  "failed": [
+    [
+      "entry_compression_atr_expansion_ny",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_compression_atr_expansion_ny at 0x00000248BB683A00>: No module named 'entry_compression_atr_expansion_ny'"
+    ],
+    [
+      "entry_eurusd_gbpusd_pullback_21ema_continuation",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_eurusd_gbpusd_pullback_21ema_continuation at 0x00000249243B9380>: No module named 'entry_eurusd_gbpusd_pullback_21ema_continuation'"
+    ],
+    [
+      "entry_h1_london_ny_overlap_breakout",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_h1_london_ny_overlap_breakout at 0x00000249243BAA30>: No module named 'entry_h1_london_ny_overlap_breakout'"
+    ],
+    [
+      "entry_iorb_vol_expansion_london_gbpusd",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_iorb_vol_expansion_london_gbpusd at 0x00000249243B9B10>: No module named 'entry_iorb_vol_expansion_london_gbpusd'"
+    ],
+    [
+      "entry_london_4h_pullback_continuation",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_4h_pullback_continuation at 0x00000249243B96F0>: No module named 'entry_london_4h_pullback_continuation'"
+    ],
+    [
+      "entry_london_asian_breakout_orb",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_asian_breakout_orb at 0x0000024924B1C880>: No module named 'entry_london_asian_breakout_orb'"
+    ],
+    [
+      "entry_london_asian_range_breakout_30min",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_asian_range_breakout_30min at 0x00000248BB684040>: No module named 'entry_london_asian_range_breakout_30min'"
+    ],
+    [
+      "entry_london_asian_range_breakout_ocbo",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_asian_range_breakout_ocbo at 0x00000248BB6835E0>: No module named 'entry_london_asian_range_breakout_ocbo'"
+    ],
+    [
+      "entry_london_asian_range_breakout_pullback_confirm",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_asian_range_breakout_pullback_confirm at 0x00000248BB683D70>: No module named 'entry_london_asian_range_breakout_pullback_confirm'"
+    ],
+    [
+      "entry_london_asian_range_fade_mean_reversion",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_asian_range_fade_mean_reversion at 0x00000248BB682C40>: No module named 'entry_london_asian_range_fade_mean_reversion'"
+    ],
+    [
+      "entry_london_asian_range_h1_breakout",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_asian_range_h1_breakout at 0x00000249243BAC40>: No module named 'entry_london_asian_range_h1_breakout'"
+    ],
+    [
+      "entry_london_asy_range_break_cont",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_asy_range_break_cont at 0x00000249243BB060>: No module named 'entry_london_asy_range_break_cont'"
+    ],
+    [
+      "entry_london_ema_pullback_fib_38",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_ema_pullback_fib_38 at 0x00000249243B9900>: No module named 'entry_london_ema_pullback_fib_38'"
+    ],
+    [
+      "entry_london_four_hour_consolidation_momentum_break",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_four_hour_consolidation_momentum_break at 0x00000249243B9D20>: No module named 'entry_london_four_hour_consolidation_momentum_break'"
+    ],
+    [
+      "entry_london_liquidity_sweep_reversal",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_liquidity_sweep_reversal at 0x00000249243B9640>: No module named 'entry_london_liquidity_sweep_reversal'"
+    ],
+    [
+      "entry_london_mean_revert_bb_squeeze",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_mean_revert_bb_squeeze at 0x00000249243B9A60>: No module named 'entry_london_mean_revert_bb_squeeze'"
+    ],
+    [
+      "entry_london_mean_revert_bollinger_quiet",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_mean_revert_bollinger_quiet at 0x0000024924B1C880>: No module named 'entry_london_mean_revert_bollinger_quiet'"
+    ],
+    [
+      "entry_london_momentum_ignition_4h_break",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_momentum_ignition_4h_break at 0x00000248BB683A00>: No module named 'entry_london_momentum_ignition_4h_break'"
+    ],
+    [
+      "entry_london_momentum_ignition_compression",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_momentum_ignition_compression at 0x00000249243BA400>: No module named 'entry_london_momentum_ignition_compression'"
+    ],
+    [
+      "entry_london_momentum_ignition_compression_atr",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_momentum_ignition_compression_atr at 0x00000249243BB320>: No module named 'entry_london_momentum_ignition_compression_atr'"
+    ],
+    [
+      "entry_london_momentum_ignition_post_news",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_momentum_ignition_post_news at 0x00000249243BA820>: No module named 'entry_london_momentum_ignition_post_news'"
+    ],
+    [
+      "entry_london_news_pullback_continuation",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_news_pullback_continuation at 0x00000249243BA350>: No module named 'entry_london_news_pullback_continuation'"
+    ],
+    [
+      "entry_london_news_stop_run_fade",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_news_stop_run_fade at 0x00000249243BB950>: No module named 'entry_london_news_stop_run_fade'"
+    ],
+    [
+      "entry_london_news_vol_momentum_ignition",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_news_vol_momentum_ignition at 0x00000249243B9B10>: No module named 'entry_london_news_vol_momentum_ignition'"
+    ],
+    [
+      "entry_london_ny_momentum_ignition_volatility_unlock",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_london_ny_momentum_ignition_volatility_unlock at 0x00000249243BB3D0>: No module named 'entry_london_ny_momentum_ignition_volatility_unlock'"
+    ],
+    [
+      "entry_london_ny_overlap_h1_breakout",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_london_ny_overlap_h1_breakout at 0x00000249243B9850>: No module named 'entry_london_ny_overlap_h1_breakout'"
+    ],
+    [
+      "entry_london_ny_overlap_momentum_ignition",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_london_ny_overlap_momentum_ignition at 0x00000248E3B09E80>: No module named 'entry_london_ny_overlap_momentum_ignition'"
+    ],
+    [
+      "entry_london_open_asian_range_breakout",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_open_asian_range_breakout at 0x00000248BB683D70>: No module named 'entry_london_open_asian_range_breakout'"
+    ],
+    [
+      "entry_london_open_atr_breakout",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_open_atr_breakout at 0x00000248BB683480>: No module named 'entry_london_open_atr_breakout'"
+    ],
+    [
+      "entry_london_orb_30min_atr_expansion",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_orb_30min_atr_expansion at 0x00000248BB683AB0>: No module named 'entry_london_orb_30min_atr_expansion'"
+    ],
+    [
+      "entry_london_orb_30min_breakout_cont",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_orb_30min_breakout_cont at 0x00000248BB683A00>: No module named 'entry_london_orb_30min_breakout_cont'"
+    ],
+    [
+      "entry_london_orb_asian_continuation",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_orb_asian_continuation at 0x00000249243B8040>: No module named 'entry_london_orb_asian_continuation'"
+    ],
+    [
+      "entry_london_orb_atr_expansion_burst",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_orb_atr_expansion_burst at 0x00000249243BAB90>: No module named 'entry_london_orb_atr_expansion_burst'"
+    ],
+    [
+      "entry_london_orb_atr_expansion_momentum",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_orb_atr_expansion_momentum at 0x00000249243BBD70>: No module named 'entry_london_orb_atr_expansion_momentum'"
+    ],
+    [
+      "entry_london_orb_breakout_htf_confirm",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_orb_breakout_htf_confirm at 0x00000249243BA6C0>: No module named 'entry_london_orb_breakout_htf_confirm'"
+    ],
+    [
+      "entry_london_orb_breakout_htm_conf",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_orb_breakout_htm_conf at 0x00000249243BAC40>: No module named 'entry_london_orb_breakout_htm_conf'"
+    ],
+    [
+      "entry_london_orb_breakout_vol_ignition",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_orb_breakout_vol_ignition at 0x00000248BB683530>: No module named 'entry_london_orb_breakout_vol_ignition'"
+    ],
+    [
+      "entry_london_orb_compression_ignition",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_orb_compression_ignition at 0x00000248BB684040>: No module named 'entry_london_orb_compression_ignition'"
+    ],
+    [
+      "entry_london_orb_ema_pullback_momentum",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_orb_ema_pullback_momentum at 0x00000248BB683AB0>: No module named 'entry_london_orb_ema_pullback_momentum'"
+    ],
+    [
+      "entry_london_orb_momentum_atr_expansion",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_orb_momentum_atr_expansion at 0x0000024924B1C880>: No module named 'entry_london_orb_momentum_atr_expansion'"
+    ],
+    [
+      "entry_london_orb_momentum_ignition",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_orb_momentum_ignition at 0x00000249243B85C0>: No module named 'entry_london_orb_momentum_ignition'"
+    ],
+    [
+      "entry_london_orb_momentum_ignition_vol_spike",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_orb_momentum_ignition_vol_spike at 0x00000249243B8720>: No module named 'entry_london_orb_momentum_ignition_vol_spike'"
+    ],
+    [
+      "entry_london_orb_vol_breakout",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_orb_vol_breakout at 0x00000249243B96F0>: No module named 'entry_london_orb_vol_breakout'"
+    ],
+    [
+      "entry_london_range_breakout_30min",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_range_breakout_30min at 0x00000249243BBE20>: No module named 'entry_london_range_breakout_30min'"
+    ],
+    [
+      "entry_london_stop_run_reversal_sweep_confirm",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_stop_run_reversal_sweep_confirm at 0x00000249243BAB90>: No module named 'entry_london_stop_run_reversal_sweep_confirm'"
+    ],
+    [
+      "entry_london_swing_reversal_liquidity_sweep",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_swing_reversal_liquidity_sweep at 0x00000249243B9DD0>: No module named 'entry_london_swing_reversal_liquidity_sweep'"
+    ],
+    [
+      "entry_london_trend_pullback_21ema",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_trend_pullback_21ema at 0x00000248BB684250>: No module named 'entry_london_trend_pullback_21ema'"
+    ],
+    [
+      "entry_london_vol_expansion_breakout_30min",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_vol_expansion_breakout_30min at 0x00000248BB683AB0>: No module named 'entry_london_vol_expansion_breakout_30min'"
+    ],
+    [
+      "entry_london_vol_squeeze_momentum_ignition",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_london_vol_squeeze_momentum_ignition at 0x00000248BB684040>: No module named 'entry_london_vol_squeeze_momentum_ignition'"
+    ],
+    [
+      "entry_momentum_ignition_ny_compression_atx",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_momentum_ignition_ny_compression_atx at 0x00000249243BB8A0>: No module named 'entry_momentum_ignition_ny_compression_atx'"
+    ],
+    [
+      "entry_momentum_ignition_volatility_expansion_ema",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_momentum_ignition_volatility_expansion_ema at 0x00000249243B9640>: No module named 'entry_momentum_ignition_volatility_expansion_ema'"
+    ],
+    [
+      "entry_ny_arb_vol_expansion_continuation",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_arb_vol_expansion_continuation at 0x00000249243B9BC0>: No module named 'entry_ny_arb_vol_expansion_continuation'"
+    ],
+    [
+      "entry_ny_atr_expansion_momentum_burst",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_atr_expansion_momentum_burst at 0x00000249243BB480>: No module named 'entry_ny_atr_expansion_momentum_burst'"
+    ],
+    [
+      "entry_ny_atr_expansion_momentum_flow",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_atr_expansion_momentum_flow at 0x00000249243BA1F0>: No module named 'entry_ny_atr_expansion_momentum_flow'"
+    ],
+    [
+      "entry_ny_atr_expansion_momentum_ignition",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_atr_expansion_momentum_ignition at 0x00000249243B8BF0>: No module named 'entry_ny_atr_expansion_momentum_ignition'"
+    ],
+    [
+      "entry_ny_compression_momentum_atr_burst",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_compression_momentum_atr_burst at 0x00000249243B8040>: No module named 'entry_ny_compression_momentum_atr_burst'"
+    ],
+    [
+      "entry_ny_fib_retrace_ema_continuation",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_fib_retrace_ema_continuation at 0x00000248E3B09E80>: No module named 'entry_ny_fib_retrace_ema_continuation'"
+    ],
+    [
+      "entry_ny_h1_london_breakout",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_h1_london_breakout at 0x00000248E3B09F30>: No module named 'entry_ny_h1_london_breakout'"
+    ],
+    [
+      "entry_ny_h1_range_break_persist_flow",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_h1_range_break_persist_flow at 0x00000248BB683A00>: No module named 'entry_ny_h1_range_break_persist_flow'"
+    ],
+    [
+      "entry_ny_london_range_breakout_ocpo",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_london_range_breakout_ocpo at 0x0000024924B1C880>: No module named 'entry_ny_london_range_breakout_ocpo'"
+    ],
+    [
+      "entry_ny_momentum_ignition_atr_expansion",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_momentum_ignition_atr_expansion at 0x00000248BB683D70>: No module named 'entry_ny_momentum_ignition_atr_expansion'"
+    ],
+    [
+      "entry_ny_momentum_ignition_compressed_vol",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_momentum_ignition_compressed_vol at 0x00000249243BBAB0>: No module named 'entry_ny_momentum_ignition_compressed_vol'"
+    ],
+    [
+      "entry_ny_momentum_ignition_flow_compression",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_momentum_ignition_flow_compression at 0x00000249243BA770>: No module named 'entry_ny_momentum_ignition_flow_compression'"
+    ],
+    [
+      "entry_ny_momentum_ignition_hawkes_clustering",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_momentum_ignition_hawkes_clustering at 0x00000249243BAB90>: No module named 'entry_ny_momentum_ignition_hawkes_clustering'"
+    ],
+    [
+      "entry_ny_momentum_ignition_hawkes_compression",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_momentum_ignition_hawkes_compression at 0x00000249243B9E80>: No module named 'entry_ny_momentum_ignition_hawkes_compression'"
+    ],
+    [
+      "entry_ny_momentum_ignition_hawkes_flow",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_momentum_ignition_hawkes_flow at 0x00000249243B8B40>: No module named 'entry_ny_momentum_ignition_hawkes_flow'"
+    ],
+    [
+      "entry_ny_momentum_ignition_volatility_squeeze",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_momentum_ignition_volatility_squeeze at 0x00000248BB684250>: No module named 'entry_ny_momentum_ignition_volatility_squeeze'"
+    ],
+    [
+      "entry_ny_momentum_ignition_volume_atr",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_momentum_ignition_volume_atr at 0x00000248BB682C40>: No module named 'entry_ny_momentum_ignition_volume_atr'"
+    ],
+    [
+      "entry_ny_momentum_ignition_volume_atr_spike",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_momentum_ignition_volume_atr_spike at 0x00000248BB683A00>: No module named 'entry_ny_momentum_ignition_volume_atr_spike'"
+    ],
+    [
+      "entry_ny_orb_atr_expansion_breakout",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_orb_atr_expansion_breakout at 0x00000248BB683ED0>: No module named 'entry_ny_orb_atr_expansion_breakout'"
+    ],
+    [
+      "entry_ny_orb_breakout_aggressive_flow",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_orb_breakout_aggressive_flow at 0x00000248BB683530>: No module named 'entry_ny_orb_breakout_aggressive_flow'"
+    ],
+    [
+      "entry_ny_orb_breakout_atr_vol",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_orb_breakout_atr_vol at 0x00000249243B8720>: No module named 'entry_ny_orb_breakout_atr_vol'"
+    ],
+    [
+      "entry_ny_orb_breakout_persistence",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_orb_breakout_persistence at 0x00000249243B9B10>: No module named 'entry_ny_orb_breakout_persistence'"
+    ],
+    [
+      "entry_ny_orb_h1_breakout_with_persistence",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_orb_h1_breakout_with_persistence at 0x00000249243BAE50>: No module named 'entry_ny_orb_h1_breakout_with_persistence'"
+    ],
+    [
+      "entry_ny_orb_momentum_ignition_vol_spike",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_orb_momentum_ignition_vol_spike at 0x00000249243BA560>: No module named 'entry_ny_orb_momentum_ignition_vol_spike'"
+    ],
+    [
+      "entry_ny_orb_persistent_delta_breakout",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_orb_persistent_delta_breakout at 0x00000249243B9BC0>: No module named 'entry_ny_orb_persistent_delta_breakout'"
+    ],
+    [
+      "entry_ny_orb_persistent_flow_breakout",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_orb_persistent_flow_breakout at 0x00000248BB683480>: No module named 'entry_ny_orb_persistent_flow_breakout'"
+    ],
+    [
+      "entry_ny_orb_range_breakout_momentum",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_orb_range_breakout_momentum at 0x00000248BB683A00>: No module named 'entry_ny_orb_range_breakout_momentum'"
+    ],
+    [
+      "entry_ny_orb_range_continuation",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_orb_range_continuation at 0x00000248BB6835E0>: No module named 'entry_ny_orb_range_continuation'"
+    ],
+    [
+      "entry_ny_orb_retest_continuation",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_orb_retest_continuation at 0x00000248BB683ED0>: No module named 'entry_ny_orb_retest_continuation'"
+    ],
+    [
+      "entry_ny_orb_trend_breakout_continuation",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_orb_trend_breakout_continuation at 0x00000248BB683530>: No module named 'entry_ny_orb_trend_breakout_continuation'"
+    ],
+    [
+      "entry_ny_orb_vol_expansion_breakout",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_orb_vol_expansion_breakout at 0x00000249243BB5E0>: No module named 'entry_ny_orb_vol_expansion_breakout'"
+    ],
+    [
+      "entry_ny_post_news_momentum_ignition",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_post_news_momentum_ignition at 0x00000249243B9900>: No module named 'entry_ny_post_news_momentum_ignition'"
+    ],
+    [
+      "entry_ny_pullback_21ema_cont",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_pullback_21ema_cont at 0x00000249243BA1F0>: No module named 'entry_ny_pullback_21ema_cont'"
+    ],
+    [
+      "entry_ny_pullback_21ema_continuation",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_pullback_21ema_continuation at 0x00000249243B85C0>: No module named 'entry_ny_pullback_21ema_continuation'"
+    ],
+    [
+      "entry_ny_pullback_ema_retracement",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_pullback_ema_retracement at 0x00000249243B8A90>: No module named 'entry_ny_pullback_ema_retracement'"
+    ],
+    [
+      "entry_ny_pullback_ema_slope_retest",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_pullback_ema_slope_retest at 0x00000249243BA140>: No module named 'entry_ny_pullback_ema_slope_retest'"
+    ],
+    [
+      "entry_ny_range_breakout_continuation",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_range_breakout_continuation at 0x00000248BB683D70>: No module named 'entry_ny_range_breakout_continuation'"
+    ],
+    [
+      "entry_ny_range_breakout_flow",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_range_breakout_flow at 0x00000248E3B09E80>: No module named 'entry_ny_range_breakout_flow'"
+    ],
+    [
+      "entry_ny_range_breakout_persistence_flow",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_range_breakout_persistence_flow at 0x00000248BB6835E0>: No module named 'entry_ny_range_breakout_persistence_flow'"
+    ],
+    [
+      "entry_ny_session_atr_range_breakout_continuation",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_session_atr_range_breakout_continuation at 0x00000248BB684250>: No module named 'entry_ny_session_atr_range_breakout_continuation'"
+    ],
+    [
+      "entry_ny_session_eurousd_pullback_21ema",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_session_eurousd_pullback_21ema at 0x00000249243B8BF0>: No module named 'entry_ny_session_eurousd_pullback_21ema'"
+    ],
+    [
+      "entry_ny_session_momentum_ignition_high_imbalance",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_session_momentum_ignition_high_imbalance at 0x00000249243BA770>: No module named 'entry_ny_session_momentum_ignition_high_imbalance'"
+    ],
+    [
+      "entry_ny_session_momentum_ignition_vol_break",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_session_momentum_ignition_vol_break at 0x00000249243BAF00>: No module named 'entry_ny_session_momentum_ignition_vol_break'"
+    ],
+    [
+      "entry_ny_session_momentum_ignition_vol_crush",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_session_momentum_ignition_vol_crush at 0x00000249243BB3D0>: No module named 'entry_ny_session_momentum_ignition_vol_crush'"
+    ],
+    [
+      "entry_ny_session_open_momentum_burst",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_session_open_momentum_burst at 0x00000249243BB110>: No module named 'entry_ny_session_open_momentum_burst'"
+    ],
+    [
+      "entry_ny_session_pullback_21ema_entry",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_session_pullback_21ema_entry at 0x00000249243B9430>: No module named 'entry_ny_session_pullback_21ema_entry'"
+    ],
+    [
+      "entry_ny_session_pullback_fib_continuation",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_session_pullback_fib_continuation at 0x0000024924B1C880>: No module named 'entry_ny_session_pullback_fib_continuation'"
+    ],
+    [
+      "entry_ny_session_stop_run_adx_reclaim",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_session_stop_run_adx_reclaim at 0x00000248BB684250>: No module named 'entry_ny_session_stop_run_adx_reclaim'"
+    ],
+    [
+      "entry_ny_session_trend_pullback_21ema_vol_confirm",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_session_trend_pullback_21ema_vol_confirm at 0x00000248BB683AB0>: No module named 'entry_ny_session_trend_pullback_21ema_vol_confirm'"
+    ],
+    [
+      "entry_ny_stop_run_swing_reversal",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_stop_run_swing_reversal at 0x00000248BB683480>: No module named 'entry_ny_stop_run_swing_reversal'"
+    ],
+    [
+      "entry_ny_trend_pullback_21ema_volume",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_trend_pullback_21ema_volume at 0x00000248BB683A00>: No module named 'entry_ny_trend_pullback_21ema_volume'"
+    ],
+    [
+      "entry_ny_trend_pullback_ema_confluence",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_trend_pullback_ema_confluence at 0x00000249243B85C0>: No module named 'entry_ny_trend_pullback_ema_confluence'"
+    ],
+    [
+      "entry_ny_trend_pullback_ema_rsi",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_trend_pullback_ema_rsi at 0x00000249243B8720>: No module named 'entry_ny_trend_pullback_ema_rsi'"
+    ],
+    [
+      "entry_ny_trend_pullback_ema_rsi_reentry",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_trend_pullback_ema_rsi_reentry at 0x00000249243B9A60>: No module named 'entry_ny_trend_pullback_ema_rsi_reentry'"
+    ],
+    [
+      "entry_ny_trend_pullback_emai_divergence",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_trend_pullback_emai_divergence at 0x00000249243BBCC0>: No module named 'entry_ny_trend_pullback_emai_divergence'"
+    ],
+    [
+      "entry_ny_trend_pullback_fib_volume_reentry",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_trend_pullback_fib_volume_reentry at 0x00000249243BAB90>: No module named 'entry_ny_trend_pullback_fib_volume_reentry'"
+    ],
+    [
+      "entry_ny_vol_spike_momentum_burst",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_vol_spike_momentum_burst at 0x00000248BB684250>: No module named 'entry_ny_vol_spike_momentum_burst'"
+    ],
+    [
+      "entry_ny_vol_spike_momentum_ignition",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_ny_vol_spike_momentum_ignition at 0x00000248BB683ED0>: No module named 'entry_ny_vol_spike_momentum_ignition'"
+    ],
+    [
+      "entry_orb_pullback_fib_retest_ny",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_orb_pullback_fib_retest_ny at 0x00000248BB6835E0>: No module named 'entry_orb_pullback_fib_retest_ny'"
+    ],
+    [
+      "entry_trend_pullback_fib_retracement_volume",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_trend_pullback_fib_retracement_volume at 0x00000248BB683A00>: No module named 'entry_trend_pullback_fib_retracement_volume'"
+    ],
+    [
+      "entry_trend_pullback_h4_confluence_gbpusd",
+      "london",
+      "sweep error: PicklingError: Can't pickle <function entry_trend_pullback_h4_confluence_gbpusd at 0x00000248BB683D70>: No module named 'entry_trend_pullback_h4_confluence_gbpusd'"
+    ],
+    [
+      "entry_trend_pullback_ny_fib_retracement",
+      "ny",
+      "sweep error: PicklingError: Can't pickle <function entry_trend_pullback_ny_fib_retracement at 0x00000249243BA400>: No module named 'entry_trend_pullback_ny_fib_retracement'"
+    ]
+  ],
+  "survivor_counts": {
+    "0.0": 0,
+    "0.25": 0,
+    "0.5": 0
+  }
+}

@@ -1,0 +1,43 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install minimal test deps
+        # MetaTrader5 is Windows-only and not installable on Linux runners;
+        # the test scaffold is structured so MT5 imports stay lazy and tests
+        # run without it.
+        run: |
+          python -m pip install --upgrade pip
+          pip install \
+            numpy pandas scipy scikit-learn statsmodels \
+            pyarrow requests python-dotenv pytz tenacity tqdm \
+            anthropic pydantic httpx \
+            pytest
+
+      - name: Lint (ruff, non-blocking until P8 cleanup lands)
+        continue-on-error: true
+        run: |
+          pip install ruff
+          ruff check . --select E,F,W --ignore E501
+
+      - name: Run integration tests
+        run: |
+          pytest tests/test_integration.py -v

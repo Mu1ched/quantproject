@@ -1,0 +1,51 @@
+{
+  "elapsed_min": 0.69,
+  "summaries": [
+    {
+      "session": "ny",
+      "adversarial_auc": 0.8564933231049027,
+      "adversarial_verdict": "ABORT",
+      "adversarial_message": "AUC=0.856 \u2014 train/test distributions highly divergent. Mined edges are likely regime artifacts, not structural. Main drift axes: spread_median, hawkes_intensity, spread_mean",
+      "dist_shift_features": [
+        "spread_median",
+        "hawkes_intensity",
+        "spread_mean",
+        "vol_imb_lag1",
+        "vol_imbalance",
+        "spread_ratio",
+        "delta",
+        "delta_momentum",
+        "delta_accel",
+        "hurst"
+      ],
+      "n_patterns_passed": 0,
+      "top_patterns": [],
+      "meta_learner": {},
+      "top_features": [],
+      "elapsed_min": 0.36
+    },
+    {
+      "session": "london",
+      "adversarial_auc": 0.8826539848766006,
+      "adversarial_verdict": "ABORT",
+      "adversarial_message": "AUC=0.883 \u2014 train/test distributions highly divergent. Mined edges are likely regime artifacts, not structural. Main drift axes: spread_median, atr, rv_median",
+      "dist_shift_features": [
+        "spread_median",
+        "spread_mean",
+        "delta",
+        "rv_median",
+        "vol_imb_lag1",
+        "vol_imbalance",
+        "delta_momentum",
+        "hawkes_intensity",
+        "delta_accel",
+        "spread_ratio"
+      ],
+      "n_patterns_passed": 0,
+      "top_patterns": [],
+      "meta_learner": {},
+      "top_features": [],
+      "elapsed_min": 0.22
+    }
+  ]
+}

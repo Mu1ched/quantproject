@@ -1,0 +1,17 @@
+{
+  "selected_pairs": [
+    "GBP_USD",
+    "EUR_USD"
+  ],
+  "selected_sessions": [
+    "ny",
+    "london"
+  ],
+  "miner_overrides": {
+    "tp_r": 2.0,
+    "sl_r": 1.0,
+    "horizon_bars": 20,
+    "top_n_patterns": 5
+  },
+  "updated_at": "2026-06-05T15:31:16.420928+00:00"
+}

@@ -1,0 +1,33 @@
+# Phase 8 — pinned versions captured 2026-05-01 from the working dev VPS.
+# Regenerate with: pip freeze > requirements.lock
+# Use this for reproducible installs:  pip install -r requirements.lock
+# requirements.txt remains the high-level "what we depend on" manifest.
+anthropic==0.97.0
+APScheduler==3.11.2
+defusedxml==0.7.1
+fpdf2==2.8.7
+GitPython==3.1.47
+httpx==0.28.1
+matplotlib==3.10.8
+numba==0.65.1
+numpy==2.4.4
+oandapyV20==0.7.2
+openpyxl==3.1.5
+pandas==3.0.2
+pyarrow==24.0.0
+pydantic==2.13.3
+python-dateutil==2.9.0.post0
+python-dotenv==1.2.2
+pytz==2026.1.post1
+requests==2.33.1
+scikit-learn==1.8.0
+scipy==1.17.1
+statsmodels==0.14.6
+streamlit==1.56.0
+tenacity==9.1.4
+tqdm==4.67.3
+typing_extensions==4.15.0
+urllib3==2.6.3
+# Optional / platform-specific:
+# MetaTrader5==5.0.45      # Windows-only; live trader
+# yfinance>=0.2.40         # Phase 9 macro fetcher; degrades silently if missing
