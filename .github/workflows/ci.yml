@@ -27,7 +27,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install \
-            numpy pandas scipy scikit-learn statsmodels \
+            numpy pandas scipy scikit-learn statsmodels matplotlib \
             pyarrow requests python-dotenv pytz tenacity tqdm \
             anthropic pydantic httpx \
             pytest
